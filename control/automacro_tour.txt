@@ -104,10 +104,10 @@ macro tour {
 
 macro run_tour {
 [
-  # Uncomment this to use the tour plugin instead.
-  #do tour stop
-  #do tour $tourPosList
-  #stop
+  # Comment this out to use the tour macro instead of the plugin.
+  do tour stop
+  do tour $tourPosList
+  stop
 
   # Make sure the loop doesn't run forever.
   $tourPosList = $tourPosList,END
