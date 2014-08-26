@@ -144,7 +144,6 @@ BEGIN {
 };
 
 sub cmd($@) {
-Log::message("cmd @_\n");
     push @$OpenKore::Plugins::Simple::queue, @_;
 }
 
