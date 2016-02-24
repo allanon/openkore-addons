@@ -1,4 +1,4 @@
-package OpenKore::Plugins::SimplePlugins;
+package OpenKore::Plugins::Simple;
 ###############################################################################
 # Provide support for very simple plugins, removing all (or most) of the
 # scaffolding necessary to turn a set of functions into a plugin.
@@ -35,7 +35,7 @@ use Plugins qw();
 use Translation qw( T TF );
 use Utils qw( swrite );
 
-our $extension = 'spl2';
+our $extension = 'spl';
 our $tag       = '[simple] ';
 our $commands ||= [];
 our $plugins  ||= [];
@@ -121,14 +121,14 @@ sub register_file {
 		package OpenKore::Plugins::$package;
 		use strict;
 		use warnings;
-		BEGIN { OpenKore::Plugins::SimplePlugins::Symbols->import; };
+		BEGIN { OpenKore::Plugins::Simple::Symbols->import; };
 		no warnings 'redefine';
 # Magic comment so eval reports the right file and line for syntax errors. Must be at the start of the line!
 # line 1 "$file"
 		$file_contents;
 	};
     if ( $r ) {
-        OpenKore::Plugins::SimplePlugins::register_package( "OpenKore::Plugins::$package", $file );
+        OpenKore::Plugins::Simple::register_package( "OpenKore::Plugins::$package", $file );
     } else {
         if ( $@ ) {
             error sprintf "Plugin [$file] contains syntax errors:\n%s", $@;
@@ -345,7 +345,7 @@ sub method_name_to_hook_names {
 
 1;
 
-package OpenKore::Plugins::SimplePlugins::Symbols;
+package OpenKore::Plugins::Simple::Symbols;
 
 use strict;
 use base 'Exporter';
@@ -360,7 +360,7 @@ use Time::HiRes qw( time sleep );
 
 # Export all symbols to users of this package.
 BEGIN {
-warn "exporting OpenKore::Plugins::SimplePlugins::Symbols\n";
+warn "exporting OpenKore::Plugins::Simple::Symbols\n";
     our @EXPORT = do {
         no strict 'refs';
         sort map {
