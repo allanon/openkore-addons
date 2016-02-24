@@ -1,0 +1,62 @@
+our $name        = 'autocamp_2000';
+our $description = 'Implement (part of) the Autocamp 2000 spec: http://www.gamespy.com/articles/489/489833p1.html';
+
+our $timeouts = { guild => { timeout => 3 }, party => { timeout => 3 }, priv => { timeout => 2 }, pub => { timeout => 2 } };
+
+sub cmd_autocamp {
+    my @args = @_;
+
+    # Toggle state.
+    $args[0] = $config{autocamp} ? 'off' : 'on' if !@args;
+
+    configModify( autocamp => 0 ) if $args[0] eq 'off';
+    configModify( autocamp => 1 ) if $args[0] eq 'on';
+}
+
+###############################################################################
+## Conversation.
+
+sub hook_packet_guildMsg { hear( { type => 'guild', %{ $_[0] } } ); }
+sub hook_packet_partyMsg { hear( { type => 'party', %{ $_[0] } } ); }
+sub hook_packet_privMsg  { hear( { type => 'priv',  %{ $_[0] } } ); }
+sub hook_packet_pubMsg   { hear( { type => 'pub',   %{ $_[0] } } ); }
+
+sub hear {
+    my ( $args ) = @_;
+    return if !$config{autocamp};
+    return if !timeOut( $timeouts->{ $args->{type} } );
+    $timeout->{ $args->{type} }->{time} = time;
+
+    return respond( $args, 'Dude?' ) if $args->{Msg} =~ /\?\s*$/;
+    return respond( $args, 'Dude!' ) if $args->{Msg} =~ /\!\s*$/;
+    return respond( $args, 'Lag.' )  if $args->{type} eq 'priv' || $args->{Msg} =~ /\Q$char->{name}\E/i;
+    respond( $args, ( 'Okie.', 'Sure.', 'Right on.' )[ rand 3 ] );
+}
+
+sub respond {
+    my ( $args, $msg ) = @_;
+    sendMessage( $messageSender, 'g',  $msg => '' )               if $args->{type} eq 'guild';
+    sendMessage( $messageSender, 'pm', $msg => $args->{MsgUser} ) if $args->{type} eq 'priv';
+    sendMessage( $messageSender, 'p',  $msg => '' )               if $args->{type} eq 'party';
+    sendMessage( $messageSender, 'c',  $msg => '' )               if $args->{type} eq 'pub';
+}
+
+###############################################################################
+## Deals.
+
+sub hook_packet_slash_deal_request {
+    return if !$config{autocamp};
+    Commands::run( 'deal' );
+}
+
+sub hook_packet_slash_deal_begin {
+    return if !$config{autocamp};
+    my $melon = Actor::Item::get( 'Melon' );
+    Commands::run( "deal add $melon->{invIndex} 1" );
+    Commands::run( 'deal' );
+}
+
+sub hook_packet_slash_deal_finalize {
+    return if !$config{autocamp};
+    Commands::run( 'deal' );
+}
