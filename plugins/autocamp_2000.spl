@@ -1,5 +1,5 @@
-our $name        = 'autocamp_2000';
-our $description = 'Implement (part of) the Autocamp 2000 spec: http://www.gamespy.com/articles/489/489833p1.html';
+our $name = 'autocamp_2000';
+our $desc = 'Implement (part of) the Autocamp 2000 spec: http://www.gamespy.com/articles/489/489833p1.html';
 
 our $timeouts = { guild => { timeout => 3 }, party => { timeout => 3 }, priv => { timeout => 2 }, pub => { timeout => 2 } };
 

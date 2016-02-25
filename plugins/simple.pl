@@ -11,7 +11,7 @@ package OpenKore::Plugins::Simple;
 # * The plugin name may be provided by setting the package global $name: our $name = 'myplugin';
 # ** If no plugin name is provided, the filename will be used.
 #
-# * The plugin description may be provided by setting the package global $description: our $description = 'a simple plugin';
+# * The plugin description may be provided by setting the package global $desc: our $desc = 'a simple plugin';
 # ** If no plugin description is provided, it will default to "no description provided".
 #
 # * All methods starting with "hook_" are auto-registered as hooks.
@@ -41,7 +41,6 @@ our $commands ||= [];
 our $plugins  ||= [];
 
 Plugins::register( 'simple_plugins', 'simple plugin framework', \&hook_unload, \&hook_reload );
-hook_load();
 
 # Tag all output with our plugin name.
 sub message { Log::message( $tag . shift( @_ ), @_ ); }
@@ -168,9 +167,9 @@ sub register {
     push @$plugins, $plugin;
 }
 
-# Default action is to list plugins.
-sub cmd_simple { cmd_simple_list( @_ ); }
+our $cmd_simple_desc = 'Simple plugin system.';
 
+our $cmd_simple_list_desc = 'List loaded plugins.';
 sub cmd_simple_list {
     my $msg = center( T( " Currently loaded plugins " ), 79, '-' ) . "\n";
     $msg .= T( "Name                 Description\n" );
@@ -179,8 +178,12 @@ sub cmd_simple_list {
     Log::message $msg, 'list';
 }
 
+our $cmd_simple_load_args = '<name|all>';
+our $cmd_simple_load_desc = 'Load a plugin.';
 sub cmd_simple_load {
     my ( $name ) = @_;
+
+    return Commands::run( 'help simple' ) if !$name;
 
     # "simple load all"
     return register_files() if $name eq 'all';
@@ -205,8 +208,12 @@ sub cmd_simple_load {
 }
 
 # TODO: Verify that this works without any hooks and/or commands.
+our $cmd_simple_unload_args = '<name|all>';
+our $cmd_simple_unload_desc = 'Unload a plugin.';
 sub cmd_simple_unload {
     my ( $name ) = @_;
+
+    return Commands::run( 'help simple' ) if !$name;
 
     # "simple unload all"
     if ( $name eq 'all' ) {
@@ -230,9 +237,19 @@ sub cmd_simple_unload {
     @$plugins = grep { $_->{name} ne $name } @$plugins;
 }
 
+our $cmd_simple_reload_args = '<name>';
+our $cmd_simple_reload_desc = 'Reload a plugin.';
 sub cmd_simple_reload {
     my ( $name ) = @_;
+
+    return Commands::run( 'help simple' ) if !$name;
+
     my @todo = grep { $_->{name} eq $name } @$plugins;
+    if ( !@todo ) {
+        error TF( "Plugin %s not found.\n", $name ), 'plugins';
+        return;
+    }
+
     @$plugins = grep { $_->{name} ne $name } @$plugins;
     foreach ( @todo ) {
         message TF( "Reloading plugin %s...\n", $_->{name} ), 'plugins';
@@ -246,7 +263,7 @@ sub cmd_simple_reload {
 ##
 # String detect_name(String package_name)
 # package: A package name (eg, OpenKore::Plugins::ABCPlugin::Part1).
-# Returns: Detected plugin name, either the $description global from the package or a lowercase version of the package name.
+# Returns: Detected plugin name, either the $desc global from the package or a lowercase version of the package name.
 #
 # If auto-converted from the package name, the output will always match the regular expression /^\w+$/.
 # For example, 'OpenKore::Plugins::ABCPlugin::Part1' will become 'abc_plugin_part_1'.
@@ -271,11 +288,17 @@ sub detect_name {
     $name;
 }
 
+sub detect_global {
+    my ( $package, $name ) = @_;
+
+    no strict 'refs';
+    ${"${package}::${name}"};
+}
+
 sub detect_description {
     my ( $package ) = @_;
 
-    no strict 'refs';
-    ${"${package}::description"} || 'no description provided';
+    detect_global( $package, 'desc' ) || 'no description provided';
 }
 
 sub detect_hooks {
@@ -297,11 +320,17 @@ sub detect_commands {
     my @methods = grep {/^cmd_/} @{ list_package_methods( $package ) };
     my $map = {};
     foreach my $method ( @methods ) {
+        next if !defined &{"${package}::$method"};
         my $cmd_sub = \&{"${package}::$method"};
         my ( undef, $cmd, $subcmd ) = split '_', $method, 3;
-        $map->{$cmd}->{ $subcmd || '' } = $cmd_sub;
+        $map->{$cmd}->{ $subcmd || '' } = {
+            name        => $subcmd || '',
+            args        => detect_global( $package, "${method}_args" ) || '',
+            description => detect_global( $package, "${method}_desc" ) || 'no description provided',
+            callback    => $cmd_sub,
+        };
     }
-    [ map { [ $_, "$_ command from the $plugin_name plugin", sub { dispatch_command( $map, $_[0], Utils::parseArgs( $_[1] ) ) } ] } keys %$map ];
+    [ map { [ $_, [($map->{$_}->{''} || {description => detect_global($package, "cmd_${_}_desc") || "$_ command from the $plugin_name plugin"})->{description}, map { ["$_->{name} $_->{args}",$_->{description}] } sort { $a->{name} cmp $b->{name} } values %{$map->{$_}}], sub { dispatch_command( $map, $_[0], Utils::parseArgs( $_[1] ) ) } ] } keys %$map ];
 }
 
 sub list_package_methods {
@@ -319,9 +348,9 @@ sub dispatch_command {
     my $cmd  = shift;
     if ( @_ && $cmds->{$cmd}->{ $_[0] } ) {
         my $subcmd = shift;
-        $cmds->{$cmd}->{$subcmd}->( @_ );
+        $cmds->{$cmd}->{$subcmd}->{callback}->( @_ );
     } elsif ( $cmds->{$cmd}->{''} ) {
-        $cmds->{$cmd}->{''}->( @_ );
+        $cmds->{$cmd}->{''}->{callback}->( @_ );
     } else {
         error "Command [$cmd] does not accept parameters [@_].\n";
         error "Known sub-commands for this command are:\n";
@@ -342,6 +371,9 @@ sub method_name_to_hook_names {
     push @$hooks, $name if $name ne $hooks->[0];
     $hooks;
 }
+
+# Do this at the very end, so globals (eg, descriptions) are already defined.
+hook_load();
 
 1;
 
