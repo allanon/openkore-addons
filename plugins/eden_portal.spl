@@ -1,0 +1,163 @@
+our $desc = 'Update Eden portal when entering and leaving Eden.';
+
+my $eden_npcs = {
+    'alberta 124 67'      => '',
+    'aldebaran 133 119'   => '',
+    'amatsu 102 152'      => '',
+    'brasilis 194 221'    => '',
+    'comodo 191 153'      => '',
+    'dicastes01 186 206'  => '',
+    'einbroch 244 200'    => 'einbroch 64 197',
+    'geffen 132 66'       => 'geffen 120 39',
+    'hugel 99 167'        => 'hugel 98 150',
+    'izlude 131 148'      => '',
+    'lighthalzen 167 102' => 'lighthalzen 159 95',
+    'louyang 207 102'     => '',
+    'mora 110 118'        => '',
+    'morocc 161 97'       => '',
+    'moscovia 220 192'    => '',
+    'payon 177 111'       => '',
+    'prontera 38 212'     => 'prontera 35 204',
+    'prontera 124 76'     => 'prontera 116 72',
+    'prontera 162 326'    => 'prontera 156 324',
+    'prontera 271 213'    => 'prontera 275 204',
+    'rachel 125 144'      => 'rachel 115 135',
+    'veins 214 122'       => 'veins 216 129',
+    'yuno 144 189'        => 'yuno 158 125',
+};
+
+# Restore temporary Eden portal when logging in.
+sub hook_start3 {
+    restore_portal();
+}
+
+sub hook_packet_slash_map_loaded {
+    remove_portal_if_not_eden( $field->baseName ) if $field;
+}
+
+# Create temporary Eden portal when we go to Eden.
+sub hook_packet_pre_slash_map_changed {
+    my ( $args ) = @_;
+
+    remove_portal_if_not_eden( $args->{map} );
+
+    # Ignore warps which aren't taking us to Eden.
+    return if $args->{map} !~ /^moc_para01/;
+    return if abs( $args->{x} - 31 ) > 3 ;
+    return if abs( $args->{y} - 14 ) > 3;
+
+    # Update outbound portal.
+    memorize_return_coordinates();
+    restore_portal();
+}
+
+sub remove_portal_if_not_eden {
+    my ( $map ) = @_;
+
+    return if $map =~ /^moc_para/;
+    return if !$config{eden_portal_spawn};
+
+    Log::warning( "[eden_portal] Removed Eden portal.\n" );
+    remove_portal( { map => 'moc_para01', x => 30, y => 10 } );
+    configModify( eden_portal_spawn => '', 1 );
+}
+
+sub restore_portal {
+    my ( $map, $x, $y ) = split / /, $config{eden_portal_spawn} || '';
+    if ( $map && $x && $y ) {
+        Log::warning( "[eden_portal] Added Eden portal to $x $y $map.\n" );
+        add_portal( { map => 'moc_para01', x => 30, y => 10 }, { map => $map, x => $x, y => $y } );
+    }
+}
+
+# Warping to Eden is done via an NPC, and return warps take us to the save
+# location for the city we're in. Try to guess the correct location, and if we
+# can't, just use our current location. Memorize the return coordinates so that
+# we can re-create the temporary route after Kore restarts.
+sub memorize_return_coordinates {
+    my $map = $field->baseName;
+    my $x   = $char->{pos_to}->{x};
+    my $y   = $char->{pos_to}->{y};
+
+    my $npc = find_eden_teleport_officer();
+    if ( $npc ) {
+
+        # This is always wrong, but at least it's consistent, so we won't have
+        # to keep adding portals when we talk to the npc from different
+        # locations.
+        $x = $npc->{pos}->{x};
+        $y = $npc->{pos}->{y};
+
+        ( $map, $x, $y ) = split /\s+/, $eden_npcs->{"$map $x $y"} if $eden_npcs->{"$map $x $y"};
+    }
+
+    configModify( eden_portal_spawn => "$map $x $y", 1 );
+}
+
+sub find_eden_teleport_officer {
+    foreach ( @{ $npcsList->getItems } ) {
+        return $_ if $_->{name} =~ /Eden Teleport/;
+    }
+    undef;
+}
+
+sub add_portal {
+    my ( $source, $target ) = @_;
+
+    my $portal = "$source->{map} $source->{x} $source->{y}";
+    my $spawn  = "$target->{map} $target->{x} $target->{y}";
+
+    # All done if the portal already exists.
+    return if $portals_lut{$portal}->{dest}->{$spawn};
+
+    my $target_field;
+    if ( $field && $field->baseName eq $target->{map} ) {
+        $target_field = $field;
+    } else {
+        # TODO: Load field for target.
+        return;
+    }
+
+    $portals_lut{$portal} = {
+        source => $source,
+        dest   => { $spawn => { %$target, enabled => 1 } },
+    };
+
+    # Update the LOS if we need to.
+    # Do this with a partial update for performance.
+    if ( !$portals_los{ $target->{map} } ) {
+        my $pathfinding = PathFinding->new;
+
+        my $mapPortals = {};
+        foreach ( grep { $portals_lut{$_}{source}{map} eq $target->{map} } keys %portals_lut ) {
+            $mapPortals->{$_} = $portals_lut{$_}{source};
+        }
+
+        foreach my $portal ( keys %$mapPortals ) {
+            next if $spawn eq $portal;
+            next if $portals_los{$spawn}{$portal};
+
+            my %start = %$target;
+            my %dest  = %{ $mapPortals->{$portal} };
+            Misc::closestWalkableSpot( $target_field, \%start );
+            Misc::closestWalkableSpot( $target_field, \%dest );
+
+            $pathfinding->reset(
+                start => \%start,
+                dest  => \%dest,
+                field => $target_field,
+            );
+            my $count = $pathfinding->runcount;
+            $portals_los{$spawn}{$portal} = max( 0, $count );
+            debug "LOS in $target->{map} from $start{x},$start{y} to $dest{x},$dest{y}: $portals_los{$spawn}{$portal}\n";
+        }
+    }
+}
+
+sub remove_portal {
+    my ( $source ) = @_;
+
+    my $portal = "$source->{map} $source->{x} $source->{y}";
+
+    $portals_lut{$portal}->{dest} = {};
+}

@@ -125,6 +125,7 @@ sub register_file {
 # Magic comment so eval reports the right file and line for syntax errors. Must be at the start of the line!
 # line 1 "$file"
 		$file_contents;
+		1;
 	};
     if ( $r ) {
         OpenKore::Plugins::Simple::register_package( "OpenKore::Plugins::$package", $file );
@@ -392,15 +393,14 @@ use Time::HiRes qw( time sleep );
 
 # Export all symbols to users of this package.
 BEGIN {
-warn "exporting OpenKore::Plugins::Simple::Symbols\n";
     our @EXPORT = do {
         no strict 'refs';
         sort map {
             my @syms;
-            push @syms, "\$$_" if *{"Plugins::Symbols::$_"}{SCALAR};
-            push @syms, "\@$_" if *{"Plugins::Symbols::$_"}{ARRAY};
-            push @syms, "\%$_" if *{"Plugins::Symbols::$_"}{HASH};
-            push @syms, "\&$_" if *{"Plugins::Symbols::$_"}{CODE};
+            push @syms, "\$$_" if *{ __PACKAGE__ . "::$_" }{SCALAR};
+            push @syms, "\@$_" if *{ __PACKAGE__ . "::$_" }{ARRAY};
+            push @syms, "\%$_" if *{ __PACKAGE__ . "::$_" }{HASH};
+            push @syms, "\&$_" if *{ __PACKAGE__ . "::$_" }{CODE};
             @syms;
         } grep {/[a-z]/} keys %{ __PACKAGE__ . '::' };
     };
