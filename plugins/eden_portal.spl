@@ -43,7 +43,7 @@ sub hook_packet_pre_slash_map_changed {
 
     # Ignore warps which aren't taking us to Eden.
     return if $args->{map} !~ /^moc_para01/;
-    return if abs( $args->{x} - 31 ) > 3 ;
+    return if abs( $args->{x} - 31 ) > 3;
     return if abs( $args->{y} - 14 ) > 3;
 
     # Update outbound portal.
