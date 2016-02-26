@@ -331,7 +331,7 @@ sub detect_commands {
             callback    => $cmd_sub,
         };
     }
-    [ map { [ $_, [($map->{$_}->{''} || {description => detect_global($package, "cmd_${_}_desc") || "$_ command from the $plugin_name plugin"})->{description}, map { ["$_->{name} $_->{args}",$_->{description}] } sort { $a->{name} cmp $b->{name} } values %{$map->{$_}}], sub { dispatch_command( $map, $_[0], Utils::parseArgs( $_[1] ) ) } ] } keys %$map ];
+    [ map { [ $_, [($map->{$_}->{''} || {description => detect_global($package, "cmd_${_}_desc") || "$_ command from the $plugin_name plugin"})->{description}, map { [( join ' ', grep {$_} $_->{name}, $_->{args} ),$_->{description}] } sort { $a->{name} cmp $b->{name} } values %{$map->{$_}}], sub { dispatch_command( $map, $_[0], Utils::parseArgs( $_[1] ) ) } ] } keys %$map ];
 }
 
 sub list_package_methods {
@@ -386,10 +386,12 @@ use base 'Exporter';
 # Import generally useful symbols from various other packages.
 # This results in massive namespace pollution, but also a big improvement to ease of use.
 use Globals;
+use I18N qw( bytesToString );
 use Misc;
 use Utils;
 use Log qw( debug message warning error );
 use Time::HiRes qw( time sleep );
+use Translation qw( T TF );
 
 # Export all symbols to users of this package.
 BEGIN {
@@ -402,7 +404,7 @@ BEGIN {
             push @syms, "\%$_" if *{ __PACKAGE__ . "::$_" }{HASH};
             push @syms, "\&$_" if *{ __PACKAGE__ . "::$_" }{CODE};
             @syms;
-        } grep {/[a-z]/} keys %{ __PACKAGE__ . '::' };
+        } grep {/^([a-z]|T$|TF$)/} keys %{ __PACKAGE__ . '::' };
     };
 };
 
