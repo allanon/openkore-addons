@@ -1,0 +1,191 @@
+# TODO: Maybe remove the core "talk" command and replace it with this?
+our $name = 'talk2';
+our $desc = 'Replacement for the "talk" command.';
+
+# TODO: $state should probably be an object with some simple key/value semantics.
+our $state_defaults = {
+    created_at    => 0,
+    updated_at    => 0,
+    npc_id        => '',
+    image         => '',
+    line          => '',
+    paragraph     => '',
+    message       => '',
+    response_type => '',
+    responses     => [],
+};
+our $state ||= {%$state_defaults};
+
+our $cmd_talk2_desc = 'Talk to an NPC.';
+our $cmd_talk2_args = '<NPC #|id>';
+
+sub cmd_talk2 {
+    my ( $npc ) = @_;
+
+    return if !check_ingame();
+
+    # A number might be an npc ID.
+    if ( $npc =~ /^\d+$/ && $npc > 20 ) {
+        my $id = pack 'V', $npc;
+        $npc = ( grep { $npcsID[$_] eq $id } 0 .. $#npcsID )[0] || $npc;
+    }
+
+    if ( $npc !~ /^\d+$/ ) {
+        error T( "You must specify a number.\n" );
+    } elsif ( !$npcsID[$npc] ) {
+        error TF( "NPC %s does not exist\n", $npc );
+    } else {
+        $messageSender->sendTalk( $npcsID[$npc] );
+    }
+}
+
+our $cmd_talk2_resp_desc = 'Select a response to an NPC.';
+our $cmd_talk2_resp_args = '<response #>';
+
+sub cmd_talk2_resp {
+    my ( $response ) = @_;
+
+    return if !check_talking( 'resp' );
+
+    # TODO: Require $state->{response_type} eq 'select'?
+    if ( !defined $response || $response eq '' ) {
+        if ( !$state->{responses} ) {
+            error T( "No NPC response list available.\n" );
+            return;
+        }
+
+        my $msg = center( TF( ' Responses (%s) ', getNPCName( $state->{npc_id} ) ), 40, '-' ) . "\n";
+        $msg .= T( "#  Response\n" );
+        for ( my $i = 0 ; $i < @{ $state->{responses} } ; $i++ ) {
+            $msg .= swrite( "@< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", [ $i, $state->{responses}->[$i] ] );
+        }
+        $msg .= ( '-' x 40 ) . "\n";
+        message $msg, 'list';
+    } elsif ( $response !~ /^\d+$/ ) {
+        error T( "Response must be a number.\n" );
+    } elsif ( !defined $state->{responses}[$response] ) {
+        error TF( "Response %s does not exist.\n", $response );
+    } else {
+        if ( $state->{responses}->[$response] eq T( 'Cancel Chat' ) ) {
+            $response = 254;
+        }
+        $messageSender->sendTalkResponse( $state->{npc_id}, $response + 1 );
+    }
+}
+
+our $cmd_talk2_num_desc = 'Send a number to an NPC.';
+our $cmd_talk2_num_args = '<number>';
+
+sub cmd_talk2_num {
+    my ( $response ) = @_;
+
+    return if !check_talking( 'resp' );
+
+    # TODO: Require $state->{response_type} eq 'number'?
+    if ( !defined $response || $response eq '' ) {
+        error T( "You must specify a number.\n" );
+    } elsif ( $response !~ /^\d+$/ ) {
+        error TF( "%s is not a valid number.\n", $response );
+    } else {
+        $messageSender->sendTalkNumber( $state->{npc_id}, $response );
+    }
+}
+
+our $cmd_talk2_text_desc = 'Send text to an NPC.';
+our $cmd_talk2_text_args = '<string>';
+
+sub cmd_talk2_text {
+    my ( $response ) = @_;
+
+    return if !check_talking( 'resp' );
+
+    # TODO: Require $state->{response_type} eq 'text'?
+    if ( !defined $response || $response eq '' ) {
+        error T( "You must specify a string.\n" );
+    } else {
+        $messageSender->sendTalkText( $state->{npc_id}, $response );
+    }
+}
+
+our $cmd_talk2_cont_desc = 'Continue talking to an NPC.';
+
+sub cmd_talk2_cont {
+    return if !check_talking( 'resp' );
+
+    # TODO: Require $state->{response_type} eq 'next'?
+    $messageSender->sendTalkContinue( $state->{npc_id} );
+}
+
+our $cmd_talk2_no_desc = 'End/cancel conversation with an NPC.';
+
+sub cmd_talk2_no {
+    return if !check_talking( 'resp' );
+
+    if ( $state->{response_type} eq 'select' ) {
+        $messageSender->sendTalkResponse( $state->{npc_id}, 255 );
+    } else {
+        $messageSender->sendTalkCancel( $state->{npc_id} );
+    }
+}
+
+# TODO: Do something with this?
+sub hook_packet_slash_npc_image {
+    $state->{image} = bytesToString( $_[0]->{npc_image} );
+}
+
+sub hook_packet_slash_npc_talk {
+    my ( $args ) = @_;
+
+    $state->{npc_id} = $args->{ID};
+    $state->{created_at} ||= time;
+    $state->{updated_at} = time;
+
+    # Extract message and remove color codes.
+    $state->{line} = bytesToString( $args->{msg} );
+    $state->{line} =~ s/\^[a-fA-F0-9]{6}//g;
+
+    $state->{paragraph} = join "\n", grep {$_} $state->{paragraph}, $state->{line};
+    $state->{message}   = join "\n", grep {$_} $state->{message},   $state->{line};
+}
+
+sub hook_packet_slash_npc_talk_close {
+    $state = {%$state_defaults};
+}
+
+sub hook_packet_slash_npc_talk_continue {
+    $state->{updated_at}    = time;
+    $state->{response_type} = 'next';
+}
+
+sub hook_packet_slash_npc_talk_number {
+    $state->{updated_at}    = time;
+    $state->{response_type} = 'number';
+}
+
+# Use the "cooked" hook so we don't have to implement decryption.
+sub hook_npc_talk_responses {
+    my ( $args ) = @_;
+
+    $state->{updated_at}    = time;
+    $state->{response_type} = 'select';
+    $state->{responses}     = $args->{responses};
+}
+
+sub hook_packet_slash_npc_talk_text {
+    my ( $args ) = @_;
+
+    $state->{updated_at}    = time;
+    $state->{response_type} = 'text';
+}
+
+sub check_ingame {
+    return 1 if $net && $net->getState == Network::IN_GAME;
+    error T( "You must be logged in the game to use this command.\n" );
+    0;
+}
+
+sub check_talking {
+    return 1 if $state->{npc_id};
+    error T( "You are not talking to any NPC.\n" );
+    0;
+}
