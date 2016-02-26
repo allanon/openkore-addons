@@ -4,13 +4,7 @@ our $desc = 'Replacement for the "talk" command.';
 
 # TODO: $state should probably be an object with some simple key/value semantics.
 our $state_defaults = {
-    created_at    => 0,
-    updated_at    => 0,
     npc_id        => '',
-    image         => '',
-    line          => '',
-    paragraph     => '',
-    message       => '',
     response_type => '',
     responses     => [],
 };
@@ -45,7 +39,7 @@ our $cmd_talk2_resp_args = '<response #>';
 sub cmd_talk2_resp {
     my ( $response ) = @_;
 
-    return if !check_talking( 'resp' );
+    return if !check_talking();
 
     # TODO: Require $state->{response_type} eq 'select'?
     if ( !defined $response || $response eq '' ) {
@@ -79,7 +73,7 @@ our $cmd_talk2_num_args = '<number>';
 sub cmd_talk2_num {
     my ( $response ) = @_;
 
-    return if !check_talking( 'resp' );
+    return if !check_talking();
 
     # TODO: Require $state->{response_type} eq 'number'?
     if ( !defined $response || $response eq '' ) {
@@ -97,7 +91,7 @@ our $cmd_talk2_text_args = '<string>';
 sub cmd_talk2_text {
     my ( $response ) = @_;
 
-    return if !check_talking( 'resp' );
+    return if !check_talking();
 
     # TODO: Require $state->{response_type} eq 'text'?
     if ( !defined $response || $response eq '' ) {
@@ -110,7 +104,7 @@ sub cmd_talk2_text {
 our $cmd_talk2_cont_desc = 'Continue talking to an NPC.';
 
 sub cmd_talk2_cont {
-    return if !check_talking( 'resp' );
+    return if !check_talking();
 
     # TODO: Require $state->{response_type} eq 'next'?
     $messageSender->sendTalkContinue( $state->{npc_id} );
@@ -119,7 +113,7 @@ sub cmd_talk2_cont {
 our $cmd_talk2_no_desc = 'End/cancel conversation with an NPC.';
 
 sub cmd_talk2_no {
-    return if !check_talking( 'resp' );
+    return if !check_talking();
 
     if ( $state->{response_type} eq 'select' ) {
         $messageSender->sendTalkResponse( $state->{npc_id}, 255 );
@@ -128,24 +122,10 @@ sub cmd_talk2_no {
     }
 }
 
-# TODO: Do something with this?
-sub hook_packet_slash_npc_image {
-    $state->{image} = bytesToString( $_[0]->{npc_image} );
-}
-
 sub hook_packet_slash_npc_talk {
     my ( $args ) = @_;
 
     $state->{npc_id} = $args->{ID};
-    $state->{created_at} ||= time;
-    $state->{updated_at} = time;
-
-    # Extract message and remove color codes.
-    $state->{line} = bytesToString( $args->{msg} );
-    $state->{line} =~ s/\^[a-fA-F0-9]{6}//g;
-
-    $state->{paragraph} = join "\n", grep {$_} $state->{paragraph}, $state->{line};
-    $state->{message}   = join "\n", grep {$_} $state->{message},   $state->{line};
 }
 
 sub hook_packet_slash_npc_talk_close {
@@ -153,12 +133,10 @@ sub hook_packet_slash_npc_talk_close {
 }
 
 sub hook_packet_slash_npc_talk_continue {
-    $state->{updated_at}    = time;
     $state->{response_type} = 'next';
 }
 
 sub hook_packet_slash_npc_talk_number {
-    $state->{updated_at}    = time;
     $state->{response_type} = 'number';
 }
 
@@ -166,15 +144,11 @@ sub hook_packet_slash_npc_talk_number {
 sub hook_npc_talk_responses {
     my ( $args ) = @_;
 
-    $state->{updated_at}    = time;
     $state->{response_type} = 'select';
     $state->{responses}     = $args->{responses};
 }
 
 sub hook_packet_slash_npc_talk_text {
-    my ( $args ) = @_;
-
-    $state->{updated_at}    = time;
     $state->{response_type} = 'text';
 }
 
