@@ -1,0 +1,541 @@
+use Task::Generic;
+
+# TODO: For debugging. Remove JSON and YAML.
+use JSON;
+use YAML;
+
+use enum qw(
+	NPC_NOT_FOUND
+	NPC_NO_RESPONSE
+	NO_SHOP_ITEM
+	WRONG_NPC_INSTRUCTIONS
+	ALREADY_TALKING
+);
+
+# TODO: Remove this once this code is stable? It's important to prevent future access to %talk though, so maybe not.
+BEGIN {
+  my $var = eval sprintf '*%s::', __PACKAGE__;
+  delete $var->{'talk'};
+};
+
+# TODO: Maybe remove the core "talknpc" command and replace it with this?
+our $name = 'talknpc2';
+our $desc = 'Replacement for the "talknpc" command.';
+
+# TODO: $state should probably be an object with some simple key/value semantics.
+our $state_defaults = {
+    state         => 'start',
+    created_at    => 0,
+    updated_at    => 0,
+    npc_id        => '',
+    npc_type      => '',
+    response_type => '',
+    responses     => [],
+    image         => '',
+    line          => '',
+    paragraph     => '',
+    message       => '',
+    canceled      => 0,
+};
+our $state ||= {%$state_defaults};
+
+our $cmd_talknpc2_desc = 'Talk to an NPC.';
+our $cmd_talknpc2_args = '(<x> <y>|<id>) <sequence>';
+
+sub cmd_talknpc2 {
+    my ( $x, $y, @sequence ) = @_;
+
+    return if !check_ingame();
+
+    my $id;
+    my $map = $field->baseName;
+
+    # A number might be an npc ID.
+    if ( $x =~ /^\d+$/ && $x > 800 ) {
+        $id = $x;
+        unshift @sequence, $y;
+        ( $x, $y ) = ();
+    } elsif ( $x =~ /\D/ && $maps_lut{"$x.rsw"} && $y =~ /^\d+$/ && @sequence && $sequence[0] =~ /^\d+$/ ) {
+        $map = $x;
+        ( $x, $y ) = ( $y, shift @sequence );
+    } elsif ( $x !~ /^\d+$/ || $y !~ /^\d+$/ ) {
+        Commands::run( 'help talknpc2' );
+        return;
+    }
+
+#    AI::queue( manual_task => Task::TalkNPC->new( nameID => $id, sequence => \@sequence ) );
+
+    # TODO: Consider dynamically adding hooks when adding this AI sequence. 
+    # This would let us wrap them in a dispatcher object, and let the hook
+    # receiver know which TalkNPC task it is being called for.  There are
+    # problems though.  The server only allows us to talk to one NPC at a
+    # time, so this code should model that.  And removing the hooks when the
+    # AI sequence is removed might be difficult.
+    AI::queue( manual_task => Task::Generic->new( nameID => $id, x => $x, y => $y, map => $map, sequence => \@sequence, state => 'start' ) );
+}
+
+# TODO: Remove this.
+sub cmd_talknpc2_state {
+    print YAML::Dump($state);
+}
+
+# TODO: Support $task_class.
+# Name the task class so it's easier to share.
+our $task_class = 'Task::TalkNPC2';
+sub task_iterate {
+    my ( $task ) = @_;
+
+    $task->{created_at} ||= time;
+
+    # TODO: If we're in the middle of a conversation, that conversation will be gone when we relog. Re-start the conversation? Discard this task?
+    return if !$net || $net->getState != Network::IN_GAME;
+
+    # Wait for us to stop moving before talking.
+    return if $char->{time_move_calc} && !timeOut( $char->{time_move}, $char->{time_move_calc} + 0.2 );
+
+    task_iterate_state_start( $task )        if $task->{state} eq 'start';
+    task_iterate_state_move( $task )         if $task->{state} eq 'move';
+    task_iterate_state_find_npc( $task )     if $task->{state} eq 'find_npc';
+    task_iterate_state_initiate( $task )     if $task->{state} eq 'initiate';
+    task_iterate_state_run_sequence( $task ) if $task->{state} eq 'run_sequence';
+    task_iterate_state_stop( $task )         if $task->{state} eq 'stop';
+
+    # Make sure the conversation is canceled if we're done.
+    cancelTalk() if $task->getStatus == Task::DONE;
+}
+
+sub task_iterate_state_start {
+    message sprintf "%d %s\n", __LINE__, ( caller( 0 ) )[3];
+    my ( $task ) = @_;
+
+    $task->{state}            = 'move';
+    $task->{state_changed_at} = time;
+}
+
+sub task_iterate_state_move {
+    message sprintf "%d %s\n", __LINE__, ( caller( 0 ) )[3];
+    my ( $task ) = @_;
+
+    # TODO: We should have a database of NPCs (oh wait, we already have one...) and use that to auto-populate x,y,map.
+    if ( $task->{x} && $task->{y} ) {
+        my $params = {
+            actor        => $char,
+            map          => $task->{map},
+            x            => $task->{x},
+            y            => $task->{y},
+            distFromGoal => $task->{dist} || 10,
+        };
+
+        if ( $params->{map} && $params->{map} ne $field->baseName ) {
+            $task->setSubtask( Task::MapRoute->new( %$params ) );
+            return;
+        } elsif ( distance( $char->{pos_to}, $params ) > $params->{distFromGoal} ) {
+            $task->setSubtask( Task::Route->new( %$params ) );
+            return;
+        }
+    }
+
+    $task->{state}            = 'find_npc';
+    $task->{state_changed_at} = time;
+}
+
+sub task_iterate_state_find_npc {
+    message sprintf "%d %s\n", __LINE__, ( caller( 0 ) )[3];
+    my ( $task ) = @_;
+
+    if ( timeOut( $task->{state_changed_at}, $config{npcTimeResponse} || 5 ) ) {
+        if ( $task->{nameID} ) {
+            $task->setError( NPC_NOT_FOUND, TF( "Could not find an NPC with id (%d).", $task->{nameID} ) );
+        } else {
+            $task->setError( NPC_NOT_FOUND, TF( "Could not find an NPC at location (%d,%d).", $task->{x}, $task->{y} ) );
+        }
+        return;
+    }
+
+    # Attempt to find the target NPC.
+    foreach my $list ( $npcsList, $monstersList ) {
+        if ( $task->{nameID} ) {
+            ( $task->{npc} ) = grep { $_->{nameID} eq $task->{nameID} } @{ $list->getItems };
+            if ( $task->{npc} ) {
+                message TF( "Talking to NPC with ID (%d) using sequence: %s\n", $task->{nameID}, join ' ', @{ $task->{sequence} } );
+            }
+        }
+
+        # Try x,y pair.
+        if ( $task->{x} && $task->{y} ) {
+            ( $task->{npc} ) = grep { $_->{pos}->{x} == $task->{x} && $_->{pos}->{y} == $task->{y} } @{ $list->getItems };
+            if ( $task->{npc} ) {
+                message TF( "Talking to NPC at (%d, %d) using sequence: %s\n", $task->{x}, $task->{y}, join ' ', @{ $task->{sequence} } );
+            }
+        }
+
+        last if $task->{npc};
+    }
+
+    return if !$task->{npc};
+
+    if ( $task->{npc}->{statuses}->{EFFECTSTATE_BURROW} ) {
+        $task->setError( NPC_NOT_FOUND, TF( 'NPC is hidden.' ) );
+        $task->{npc} = undef;
+    }
+
+    lookAtPosition( $task->{npc}->{pos_to} || $task->{npc}->{pos} );
+
+    # If we're already in a conversation with a different NPC, stop.
+    if ( $state->{npc_id} && $state->{npc_id} ne $task->{npc}->{ID} ) {
+        $task->setError( ALREADY_TALKING, TF( 'Already talking to a different NPC.' ) );
+        return;
+    }
+
+    # Initiate NPC conversation.
+    if ( $state->{npc_id} ) {
+        $task->{state}            = 'run_sequence';
+        $task->{state_changed_at} = time;
+    } else {
+        if ( $task->{npc}->isa( 'Actor::Monster' ) ) {
+            $messageSender->sendAction( $task->{npc}->{ID}, 0 );
+        } else {
+            $messageSender->sendTalk( $task->{npc}->{ID} );
+        }
+
+        $task->{state}            = 'initiate';
+        $task->{state_changed_at} = time;
+    }
+}
+
+sub task_iterate_state_initiate {
+#    message sprintf "%d %s\n", __LINE__, ( caller( 0 ) )[3];
+    my ( $task ) = @_;
+
+    if ( timeOut( $task->{state_changed_at}, $config{npcTimeResponse} || 5 ) ) {
+        $task->setError( NPC_NO_RESPONSE, T( 'The NPC did not respond.' ) );
+        return;
+    }
+
+    if ( $state->{npc_id} ) {
+        $task->{state}            = 'run_sequence';
+        $task->{state_changed_at} = time;
+    }
+}
+
+sub task_iterate_state_run_sequence {
+    my ( $task ) = @_;
+
+    # Not talking anymore.
+    if ( !$state->{npc_id} || $state->{npc_id} ne $task->{npc}->{ID} ) {
+        $state->{canceled} = 1;
+        return $task->{state} = 'stop';
+    }
+
+    # TODO: Implement require_response.
+    $task->{response_timeout} ||= 0;
+    if ( $task->{require_response} && timeOut( $task->{state_changed_at}, $task->{response_timeout} ) ) {
+        $task->setError( NPC_NO_RESPONSE, T( 'The NPC stopped responding.' ) );
+        return;
+    }
+
+    # No response yet, keep waiting.
+    return if !$state->{updated_at} && !timeOut( $task->{state_changed_at}, $task->{response_timeout} );
+    return if !$state->{response_type};
+message sprintf "%d %s\n", __LINE__, ( caller( 0 ) )[3];
+
+    # Normally wait for 5 seconds for a response, then continue.
+    # This may be changed by conversation codes.
+    $task->{require_response} = 0;
+    $task->{response_timeout} = $config{npcTimeResponse} || 5;
+
+    my $step = shift @{ $task->{sequence} };
+
+    # Ignore continues if autoTalkCont is turned on.
+    $step = shift @{ $task->{sequence} } while lc $step eq 'c' && $config{autoTalkCont};
+
+    if ( !$step ) {
+        return $task->{state} = 'stop';
+    }
+message "step [$step] [$state->{response_type}]\n";
+
+    # talknpc-specific version of autoTalkCont.
+    if ( $step !~ /^c/i && $state->{response_type} eq 'next' ) {
+        unshift @{ $task->{sequence} }, $step;
+        $step = 'c';
+    }
+
+    while ( $step =~ /^if~\/(.*?)\/,(.*)/i ) {
+        my ( $regex, $code ) = ( $1, $2 );
+        if ( "$state->{paragraph}:$state->{image}" =~ /$regex/s ) {
+            $step = $code;
+        } else {
+            $step = shift @{ $task->{sequence} };
+        }
+    }
+
+    if ( $step =~ /^w(\d+(?:\.\d+)?)/i ) {
+
+        # Wait x seconds.
+        $task->{response_timeout} = $1;
+    } elsif ( $step =~ /^a=(.*)/i ) {
+        Commands::run("$1");
+    } elsif ( $step =~ /^c$/i ) {
+        if ( $state->{response_type} ne 'next' ) {
+            $task->setError( WRONG_NPC_INSTRUCTIONS, T( "According to the given NPC instructions, the Next button must now be clicked on, but that's not possible." ) );
+            return;
+        }
+
+        # Click Next.
+        $messageSender->sendTalkContinue( $state->{npc_id} );
+    } elsif ( $step =~ /^e/i ) {
+
+        # The NPC is supposed to stop this conversation. Assume that it did so.
+        $state->{canceled} = 1;
+        return $task->{state} = 'stop';
+    } elsif ( $step =~ /^t=(.*)/i ) {
+        $messageSender->sendTalkText( $state->{npc_id}, "$1" );
+    } elsif ( $step =~ /^d(\d+)/i ) {
+        $messageSender->sendTalkNumber( $state->{npc_id}, "$1" );
+    } elsif ( $step =~ /^x/i ) {
+
+        # Re-initiate conversation.
+        # TODO: Make sure we're not still talking when processing this code.
+        # TODO: Clear $state->{canceled} if necessary.
+        if ( $task->{npc}->isa( 'Actor::Monster' ) ) {
+            $messageSender->sendAction( $task->{npc}->{ID}, 0 );
+        } else {
+            $messageSender->sendTalk( $task->{npc}->{ID} );
+        }
+    } elsif ( $step =~ /^r(?:(\d+)|=(.+)|~\/(.*?)\/(i?))/i ) {
+
+        # Choose a menu item.
+        my $choice = $1;
+        my $pattern = $2 ? "^\Q$2\E\$" : $4 ? "(?i:$3)" : $3;
+
+        if ( $state->{response_type} ne 'select' ) {
+            $task->setError( WRONG_NPC_INSTRUCTIONS, T( "According to the given NPC instructions, a menu item must now be selected, but that's not possible." ) );
+            return;
+        }
+
+        # Choose a menu item by matching options against a regular expression.
+        if ( $pattern ) {
+            ( $choice ) = grep { $state->{responses}[$_] =~ /$pattern/ } 0 .. $#{ $state->{responses} };
+            if ( !defined $choice ) {
+                $task->setError( WRONG_NPC_INSTRUCTIONS, TF( "According to the given NPC instructions, a menu item matching '%s' must now be selected, but no such menu item exists.", $pattern ) );
+                return;
+            }
+        }
+
+        # The last response is a fake "Cancel Chat" response.
+        if ( $choice == $#{ $state->{responses} } ) {
+            return $task->{state} = 'stop';
+        }
+
+        if ( $choice < 0 || $choice >= $#{ $state->{responses} } ) {
+            $task->setError( WRONG_NPC_INSTRUCTIONS, TF( 'According to the given NPC instructions, menu item %d must now be selected, but there are only %d menu items.', $choice, $#{ $state->{responses} } ) );
+            return;
+        }
+
+        $messageSender->sendTalkResponse( $state->{npc_id}, $choice + 1 );
+	} elsif ( $step =~ /^n/i ) {
+
+		# Click Close or Cancel.
+		cancelTalk();
+    } elsif ( $step =~ /^b(.+,\d+)?$/i ) {
+        if ( $state->{npc_type} ne 'store' ) {
+            $task->setError( WRONG_NPC_INSTRUCTIONS, T( 'According to the given NPC instructions, the buy list must be requested, but the NPC is not a store.' ) );
+            return;
+        }
+
+        if ( $step =~ /^b$/i ) {
+
+            # Get the shop's item list.
+            $messageSender->sendNPCBuySellList( $state->{npc_id}, 0 );
+
+            # Should get npc_store_info packet.
+        } elsif ( $step =~ /^b(.+),(\d+)/i ) {
+            my $items = [];
+            unshift @{ $task->{sequence} }, $step;
+            while ( @{ $task->{sequence} } && $task->{sequence}->[0] =~ /^b(.+),(\d+)/i ) {
+                my ( $id, $amount ) = ( $1, $2 );
+                shift @{ $task->{sequence} };
+                my $store_item;
+                if ( $id =~ /^\d+$/ && $storeList[$id] ) {
+                    $store_item = $storeList[$id];
+                } elsif ( $id =~ m{^/(.*)/$} ) {
+                    my $pattern = $1;
+                    ( $store_item ) = grep { $_->{name} =~ /$pattern/i } @storeList;
+                } else {
+                    ( $store_item ) = grep { $_->{nameID} eq $id || $_->{name} eq $id } @storeList;
+                }
+
+                if ( $store_item ) {
+                    push @$items, { itemID => $store_item->{nameID}, amount => $amount };
+                } else {
+                    error TF( "Shop item %s not found.\n", $id );
+                }
+            }
+            $messageSender->sendBuyBulk( $items ) if @$items;
+
+            # Should get buy_result packet.
+        }
+    } elsif ( $step =~ /^s(.+,\d+)?$/i ) {
+        if ( $state->{npc_type} ne 'store' ) {
+            $task->setError( WRONG_NPC_INSTRUCTIONS, T( 'According to the given NPC instructions, selling mode must be requested, but the NPC is not a store.' ) );
+            return;
+        }
+
+        if ( $step =~ /^s$/i ) {
+
+            # Initiate selling mode.
+            $messageSender->sendNPCBuySellList( $state->{npc_id}, 1 );
+
+            # Should get npc_sell_list packet.
+        } elsif ( $step =~ /^s(.+),(\d+)/i ) {
+            my $sold = {};
+            my $items = [];
+            unshift @{ $task->{sequence} }, $step;
+            while ( @{ $task->{sequence} } && $task->{sequence}->[0] =~ /^s(.+),(\d+)/i ) {
+                my ( $id, $amount ) = ( lc $1, $2 );
+                shift @{ $task->{sequence} };
+
+                # Get by index or nameID or case-insensitive name match.
+                my $inv_items = [ grep { !$_->{equipped} && ( $_->{invIndex} eq $id || $_->{nameID} eq $id || lc $_->{name} eq $id ) } @{ $char->inventory->getItems } ];
+
+                # Get by regex match.
+                if ( $id =~ m{^/(.*)/$} ) {
+                    my $pattern = $1;
+                    push @$inv_items, grep { !$_->{equipped} && $_->{name} =~ /$pattern/i } @{ $char->inventory->getItems };
+                }
+
+                if ( @$inv_items ) {
+                    foreach ( @$inv_items ) {
+                        last if $amount <= 0;
+                        push @$items, my $item = { index => $_->{index}, amount => min( $_->{amount} - ( $sold->{ $_->{index} } || 0 ), $amount ) };
+                        $amount -= $item->{amount};
+                        $sold->{ $_->{index} } += $item->{amount};
+                    }
+                } else {
+                    error TF( "Inventory item %s not found.\n", $id );
+                }
+            }
+            $messageSender->sendSellBulk( $items ) if @$items;
+
+            # Should get sell_result packet.
+        }
+
+    } else {
+
+        # TODO: Should we reference the conversation codes wiki page here? http://wiki.openkore.com/index.php/NPC_conversation_codes
+        return $task->setError( WRONG_NPC_INSTRUCTIONS, TF( 'Unknown NPC instruction "%s" found. Does this instruction need quotes?', $step ) );
+    }
+
+    $task->{state}            = 'run_sequence';
+    $task->{state_changed_at} = time;
+
+    # Use the presence of updated_at to signal that we got a response from the NPC.
+    delete $state->{updated_at};
+}
+
+sub cancelTalk {
+    return if !$state->{npc_id};
+    return if $state->{canceled};
+    $state->{canceled} = 1;
+
+    if ( $state->{response_type} eq 'select' ) {
+        $messageSender->sendTalkResponse( $state->{npc_id}, 255 );
+    } elsif ( $state->{response_type} ne 'close' ) {
+        $messageSender->sendTalkCancel( $state->{npc_id} );
+    }
+}
+
+sub task_iterate_state_stop {
+    message sprintf "%d %s\n", __LINE__, ( caller( 0 ) )[3];
+    my ( $task ) = @_;
+
+    # Make sure the conversation has ended.
+    cancelTalk();
+
+    message TF( "Done talking with %s.\n", $task->{npc}->name ), 'ai_npcTalk' if $task->{npc};
+    $task->stop;
+}
+
+sub get_task {
+    ( grep { ref $AI::ai_seq_args[$_] eq 'Task::Generic' && $AI::ai_seq_args[$_]->{package} eq __PACKAGE__ } 0 .. $#AI::ai_seq_args )[0] || {};
+}
+
+sub hook_packet_slash_npc_image {
+    $state->{image} = bytesToString( $_[0]->{npc_image} );
+}
+
+sub hook_packet_slash_npc_talk {
+    my ( $args ) = @_;
+
+    $state->{npc_id} = $args->{ID};
+    $state->{created_at} ||= time;
+    $state->{updated_at} = time;
+
+    # Extract message and remove color codes.
+    $state->{line} = bytesToString( $args->{msg} );
+    $state->{line} =~ s/\^[a-fA-F0-9]{6}//g;
+
+    $state->{paragraph} = join "\n", grep {$_} $state->{paragraph}, $state->{line};
+    $state->{message}   = join "\n", grep {$_} $state->{message},   $state->{line};
+}
+
+sub hook_packet_slash_npc_store_begin {
+    my ( $args ) = @_;
+
+    $state->{npc_id}        = $args->{ID};
+    $state->{created_at}    = time;
+    $state->{updated_at}    = time;
+    $state->{npc_type}      = 'store';
+    $state->{response_type} = 'store';
+}
+
+sub hook_packet_slash_npc_store_info { $state->{updated_at} = time; }
+sub hook_packet_slash_npc_sell_list  { $state->{updated_at} = time; }
+sub hook_packet_slash_buy_result     { $state->{updated_at} = time; }
+sub hook_packet_slash_sell_result    { $state->{updated_at} = time; }
+
+sub hook_packet_slash_npc_talk_close {
+    # TODO: Pop the task off the AI queue.
+    %$state = %$state_defaults;
+}
+
+# Implicit end of conversation.
+sub hook_disconnected             { hook_packet_slash_npc_talk_close(); }
+sub hook_packet_slash_map_change  { hook_packet_slash_npc_talk_close(); }
+sub hook_packet_slash_map_changed { hook_packet_slash_npc_talk_close(); }
+
+sub hook_packet_slash_npc_talk_continue {
+
+    # Ignore continues if autoTalkCont will take care of them for us.
+    return if $config{autoTalkCont};
+
+    $state->{updated_at}    = time;
+    $state->{response_type} = 'next';
+}
+
+sub hook_packet_slash_npc_talk_number {
+    $state->{updated_at}    = time;
+    $state->{response_type} = 'number';
+}
+
+# Use the "cooked" hook so we don't have to implement decryption.
+sub hook_npc_talk_responses {
+    my ( $args ) = @_;
+
+    $state->{updated_at}    = time;
+    $state->{response_type} = 'select';
+    $state->{responses}     = $args->{responses};
+}
+
+sub hook_packet_slash_npc_talk_text {
+    my ( $args ) = @_;
+
+    $state->{updated_at}    = time;
+    $state->{response_type} = 'text';
+}
+
+sub check_ingame {
+    return 1 if $net && $net->getState == Network::IN_GAME;
+    error T( "You must be logged in the game to use this command.\n" );
+    0;
+}
