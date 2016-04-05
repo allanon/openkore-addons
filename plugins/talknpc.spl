@@ -5,11 +5,11 @@ use JSON;
 use YAML;
 
 use enum qw(
-	NPC_NOT_FOUND
-	NPC_NO_RESPONSE
-	NO_SHOP_ITEM
-	WRONG_NPC_INSTRUCTIONS
-	ALREADY_TALKING
+    NPC_NOT_FOUND
+    NPC_NO_RESPONSE
+    NO_SHOP_ITEM
+    WRONG_NPC_INSTRUCTIONS
+    ALREADY_TALKING
 );
 
 # TODO: Remove this once this code is stable? It's important to prevent future access to %talk though, so maybe not.
@@ -333,10 +333,10 @@ message "step [$step] [$state->{response_type}]\n";
         }
 
         $messageSender->sendTalkResponse( $state->{npc_id}, $choice + 1 );
-	} elsif ( $step =~ /^n/i ) {
+    } elsif ( $step =~ /^n/i ) {
 
-		# Click Close or Cancel.
-		cancelTalk();
+        # Click Close or Cancel.
+        cancelTalk();
     } elsif ( $step =~ /^b(.+,\d+)?$/i ) {
         if ( $state->{npc_type} ne 'store' ) {
             $task->setError( WRONG_NPC_INSTRUCTIONS, T( 'According to the given NPC instructions, the buy list must be requested, but the NPC is not a store.' ) );
