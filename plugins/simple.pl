@@ -397,14 +397,14 @@ use Translation qw( T TF );
 BEGIN {
     our @EXPORT = do {
         no strict 'refs';
-        sort map {
+        grep { !/^(\$timeout)$/ } sort map {
             my @syms;
             push @syms, "\$$_" if *{ __PACKAGE__ . "::$_" }{SCALAR};
             push @syms, "\@$_" if *{ __PACKAGE__ . "::$_" }{ARRAY};
             push @syms, "\%$_" if *{ __PACKAGE__ . "::$_" }{HASH};
             push @syms, "\&$_" if *{ __PACKAGE__ . "::$_" }{CODE};
             @syms;
-        } grep {/^([a-z]|T$|TF$)/} keys %{ __PACKAGE__ . '::' };
+        } grep {/^([a-z]|AI$|T$|TF$)/} keys %{ __PACKAGE__ . '::' };
     };
 };
 
