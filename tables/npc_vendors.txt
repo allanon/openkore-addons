@@ -1,0 +1,1631 @@
+npcStore {
+  id 50269
+  name Tool Dealer
+  location prt_in 126 76
+  # Item  Price     ID    Item
+  item_1         40   611 Magnifier
+  item_2          1  1750 Arrow
+  item_3         50   501 Red Potion
+  item_4        200   502 Orange Potion
+  item_5        550   503 Yellow Potion
+  item_6       1200   504 White Potion
+  item_7         40   506 Green Potion
+  item_8        800   645 Concentration Potion
+  item_9       1500   656 Awakening Potion
+  item_10       400   713 Empty Bottle
+  item_11        60   601 Fly Wing
+  item_12       300   602 Butterfly Wing
+  item_13       100  1065 Trap
+  item_14     10000  2239 Monocle
+}
+npcStore {
+  id 50276
+  name Trap Specialist
+  location prt_in 109 68
+  # Item  Price     ID    Item
+  item_1        200  7940 Special Alloy Trap
+  item_2      30000 12341 Special Alloy Trap Box
+}
+npcStore {
+  id 50271
+  name Weapon Dealer
+  location prt_in 172 130
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          3  1751 Silver Arrow
+  item_3       1000  1701 Bow
+  item_4         50  1201 Knife
+  item_5       1250  1204 Cutter
+  item_6       2400  1207 Main Gauche
+  item_7         50  1601 Rod
+  item_8        100  1101 Sword
+  item_9       1500  1104 Falchion
+  item_10      2900  1107 Blade
+  item_11     10000  1110 Rapier
+  item_12     17000  1113 Scimiter
+  item_13     24000  1122 Ring Pommel Saber
+  item_14     51000  1119 Tsurugi
+  item_15     50000  1123 Haedonggum
+  item_16     49000  1126 Saber
+  item_17     60000  1129 Flamberge
+  item_18      2000  1116 Katana
+  item_19       500  1301 Axe
+}
+npcStore {
+  id 50273
+  name Armor Dealer
+  location prt_in 172 132
+  # Item  Price     ID    Item
+  item_1        500  2101 Guard
+  item_2      14000  2103 Buckler
+  item_3        400  2401 Sandals
+  item_4       3500  2403 Shoes
+  item_5       1000  2501 Hood
+  item_6       5000  2503 Muffler
+  item_7       1000  2220 Hat
+  item_8      12000  2226 Cap
+  item_9         10  2301 Cotton Shirt
+  item_10       200  2303 Jacket
+  item_11      1000  2305 Adventurer's Suit
+  item_12      5500  2328 Wooden Mail
+  item_13     10000  2307 Mantle
+  item_14     22000  2309 Coat
+  item_15     48000  2312 Padded Armor
+  item_16     65000  2314 Chain Mail
+  item_17       400  2628 Novice Armlet
+  item_18     20000  2627 Belt
+}
+npcStore {
+  id 50277
+  name Black Marketeer
+  location prt_in 175 137
+  # Item  Price     ID    Item
+  item_1      20000  2139 Flame Thrower
+  item_2     100000  2800 Accelerator
+  item_3     100000  2801 Hovering Booster
+  item_4     500000  2802 Suicidal Device
+  item_5     100000  2803 Shape Shifter
+  item_6     100000  2804 Cooling Device
+  item_7     100000  2805 Magnetic Field Generator
+  item_8     150000  2806 Barrier Builder
+  item_9     200000  2807 Repair Kit
+  item_10       100 18000 Cannon Ball
+  item_11       200 18001 Holy Cannon Ball
+  item_12       200 18002 Dark Cannon Ball
+  item_13       200 18003 Soul Cannon Ball
+  item_14       500 18004 Iron Cannon Ball
+  item_15       275 12392 Repair A
+  item_16       625 12393 Repair B
+  item_17      1375 12394 Repair C
+  item_18        10  6145 Vulcan Bullet
+  item_19       300  6146 Magic Gear Fuel
+  item_20       100  6147 Liquid Condensed Bullet
+  item_21       500  6186 Monkey Wrench
+  item_22    250000  2808 Camouflage Generator
+}
+npcStore {
+  id 50325
+  name Rebellion Weapon Vendin
+  location prontera 92 209
+  # Item  Price     ID    Item
+  item_1    1200000 13120 Heaven's Feather & Hell's Fire
+  item_2    1450000 13122 Altair & Ares
+  item_3    1350000 13189 Color Scope
+  item_4    1800000 13195 R.A.G.203
+  item_5    1250000 13192 Death Fire
+  item_6    1350000 13193 Rolling Thunder
+  item_7    1950000 13194 Peace Breaker
+  item_8    1600000 13197 Minigun
+  item_9    2200000 13198 Tempest
+  item_10   2700000 28200 End of Horizon
+  item_11   2800000 28201 Southern Cross
+}
+npcStore {
+  id 50260
+  name Fruit Gardener
+  location prontera 104 49
+  # Item  Price     ID    Item
+  item_1         15   512 Apple
+  item_2         15   513 Banana
+}
+npcStore {
+  id 50265
+  name Gift Merchant
+  location prontera 105 87
+  # Item  Price     ID    Item
+  item_1       3000   734 Red Frame
+  item_2       5000   735 Chung Jah
+  item_3       1000   736 China
+  item_4        400   737 Black Ladle
+  item_5       1400   746 Glass Bead
+}
+npcStore {
+  id 50264
+  name Flower Lady
+  location prontera 113 42
+  # Item  Price     ID    Item
+  item_1          2   712 Flower
+  item_2       2000   744 Bouquet
+}
+npcStore {
+  id 50275
+  name Chef Assistant
+  location prontera 156 212
+  # Item  Price     ID    Item
+  item_1        700  7454 Savory Sauce
+  item_2       1000  7456 Red Spice
+  item_3        200  7482 Pot
+  item_4        150   580 Bread
+}
+npcStore {
+  id 50324
+  name Amatsu Trader#nin
+  location prontera 178 244
+  # Item  Price     ID    Item
+  item_1          4 13250 Shuriken
+  item_2         10 13251 Nimbus Shuriken
+  item_3         20 13252 Flash Shuriken
+  item_4         40 13253 Sharp Leaf Shuriken
+  item_5        100 13254 Thorn Needle Shuriken
+  item_6        100 13294 Explosive Kunai
+  item_7         30  6493 Makibishi
+  item_8      10000  2117 Arm Guard
+  item_9      40000  2171 Fox Armguard
+  item_10     10000 15053 Special Ninja Suit
+  item_11       150  7521 Flame Stone
+  item_12       150  7522 Ice Stone
+  item_13       150  7523 Wind Stone
+  item_14       300  7524 Shadow Orb
+  item_15       100  6512 Charm Fire
+  item_16       100  6513 Charm Ice
+  item_17       100  6514 Charm Wind
+  item_18       100  6515 Charm Earth
+}
+npcStore {
+  id 50267
+  name Pet Groomer
+  location prontera 218 211
+  # Item  Price     ID    Item
+  item_1       1000   537 Pet Food
+  item_2       3000   643 Pet Incubator
+  item_3       1500 10013 Poring Pet Backpack
+  item_4       2000 10014 Rocker Glasses
+  item_5        100   554 Mochi
+  item_6       1000  6114 Flame Gemstone
+  item_7       1000  6113 Blue Vital Flower
+  item_8       1000  6110 Yellow Vital Flower
+  item_9       1000  6115 Bun
+  item_10      1000  6100 Damp Darkness
+  item_11      1000  6098 Small Snow Flower
+  item_12      1000  6112 Fresh Plant
+  item_13      1000  6104 Big Cell
+  item_14      1000  6108 Apple Pudding
+  item_15      1000  6111 Mystic Stone
+  item_16      1000  6095 Flavored Alcohol
+  item_17        20  6099 Grilled Rice Cake
+  item_18        20  6096 Fish With Blue Back
+  item_19      1000  6098 Small Snow Flower
+  item_20      1000  6108 Apple Pudding
+  item_21      1000  6115 Bun
+  item_22      1000  6112 Fresh Plant
+  item_23      1000  6104 Big Cell
+  item_24        20  6097 Pumpkin Pie
+  item_25        20  7821 Green Apple
+  item_26        20  6094 Traditional Cookie
+  item_27        20  6109 Plant Neutrient
+  item_28        20  6105 Morning Dew
+  item_29        20  7824 Spirit Liquor
+  item_30        20  6107 Sunset on the Rock
+  item_31        20  7766 Bok Choy
+  item_32        20  7823 Meat Veg Skewer
+  item_33        20  6106 Well Ripened Berry
+  item_34        20  7822 Whole Barbecue
+}
+npcStore {
+  id 50266
+  name Doll Supplier
+  location prontera 248 153
+  # Item  Price     ID    Item
+  item_1       1000   740 Puppet
+  item_2       1800   741 Poring Doll
+  item_3       3000   742 Chonchon Doll
+}
+npcStore {
+  id 50261
+  name Vegetable Gardener
+  location prontera 48 58
+  # Item  Price     ID    Item
+  item_1         15   515 Carrot
+  item_2         15   516 Potato
+  item_3         15   535 Pumpkin
+}
+npcStore {
+  id 50263
+  name Flower Girl
+  location prontera 58 182
+  # Item  Price     ID    Item
+  item_1          2   712 Flower
+  item_2       2000   744 Bouquet
+}
+npcStore {
+  id 50262
+  name Butcher
+  location prontera 64 125
+  # Item  Price     ID    Item
+  item_1         50   517 Meat
+  item_2         60   528 Monster's Feed
+}
+npcStore {
+  id 50259
+  name Vendor from Milk Ranch
+  location prontera 73 134
+  # Item  Price     ID    Item
+  item_1         25   519 Milk
+}
+npcStore {
+  id 50268
+  name Nun
+  location prt_church 108 124
+  # Item  Price     ID    Item
+  item_1      15000  2608 Rosary
+  item_2       9000  2216 Biretta
+  item_3     150000  5092 Coif
+  item_4       6500  2323 Scapulare
+  item_5      54000  2325 Saint's Robe
+  item_6        120  1501 Club
+  item_7       1600  1504 Mace
+  item_8       9000  1507 Smasher
+  item_9      16000  1510 Flail
+  item_10     41000  1513 Morning Star
+  item_11     23000  1519 Chain
+}
+npcStore {
+  id 50270
+  name Wedding Shop Dealer
+  location prt_in 211 169
+  # Item  Price     ID    Item
+  item_1       2000   744 Bouquet
+  item_2      12000   745 Wedding Bouquet
+  item_3      43000  2338 Wedding Dress
+  item_4      23000  2206 Wedding Veil
+  item_5      43000  7170 Tuxedo
+}
+npcStore {
+  id 50241
+  name Tool Dealer
+  location prt_fild05 290 221
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2         40   611 Magnifier
+  item_3         50   501 Red Potion
+  item_4        200   502 Orange Potion
+  item_5         40   506 Green Potion
+  item_6        800   645 Concentration Potion
+  item_7        400   713 Empty Bottle
+  item_8         60   601 Fly Wing
+  item_9        300   602 Butterfly Wing
+}
+npcStore {
+  id 50478
+  name Tool Dealer
+  location alb2trea 87 65
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          3  1751 Silver Arrow
+  item_3          3  1752 Fire Arrow
+  item_4         50   501 Red Potion
+  item_5        200   502 Orange Potion
+  item_6        550   503 Yellow Potion
+  item_7       1200   504 White Potion
+  item_8         40   506 Green Potion
+  item_9        800   645 Concentration Potion
+  item_10      1500   656 Awakening Potion
+  item_11       400   713 Empty Bottle
+}
+npcStore {
+  id 50485
+  name Chef Assistant
+  location alberta 167 135
+  # Item  Price     ID    Item
+  item_1        250   579 Fresh Fish
+}
+npcStore {
+  id 50469
+  name Item Collector
+  location alberta_in 165 96
+  # Item  Price     ID    Item
+  item_1        160   911 Scell
+  item_2         60   528 Monster's Feed
+}
+npcStore {
+  id 56676
+  name Trading Merchant
+  location alberta_in 176 81
+  # Item  Price     ID    Item
+  item_1          1 13200 Bullet
+  item_2          5 13221 Silver Bullet
+  item_3         10 13222 Bloody Shell
+  item_4       3000 13150 Branch
+  item_5      20000 13102 Crimson Bolt
+  item_6      17500 13151 Cyclone
+  item_7      12000 13154 Rolling Stone
+  item_8      32000 13155 Black Rose
+  item_9      40000 13163 Long Barrel
+  item_10     56000 13165 Jungle Carbine
+  item_11     76000 13168 Thunder P
+}
+npcStore {
+  id 50471
+  name Armor Dealer
+  location alberta_in 180 15
+  # Item  Price     ID    Item
+  item_1        500  2101 Guard
+  item_2      14000  2103 Buckler
+  item_3        400  2401 Sandals
+  item_4       3500  2403 Shoes
+  item_5      18000  2405 Boots
+  item_6       1000  2501 Hood
+  item_7       5000  2503 Muffler
+  item_8      32000  2505 Manteau
+  item_9       4000  2203 Glasses
+  item_10      5000  2201 Sunglasses
+  item_11      3500  2205 Diver Goggles
+  item_12     12000  2226 Cap
+  item_13        10  2301 Cotton Shirt
+  item_14       200  2303 Jacket
+  item_15      1000  2305 Adventurer's Suit
+  item_16      8000  2321 Silk Robe
+  item_17      5500  2328 Wooden Mail
+  item_18      7000  2332 Silver Robe
+  item_19     10000  2307 Mantle
+  item_20     22000  2309 Coat
+  item_21     48000  2312 Padded Armor
+  item_22     65000  2314 Chain Mail
+  item_23       400  2628 Novice Armlet
+}
+npcStore {
+  id 50468
+  name Tool Dealer
+  location alberta_in 182 97
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2         40   611 Magnifier
+  item_3         50   501 Red Potion
+  item_4        200   502 Orange Potion
+  item_5        550   503 Yellow Potion
+  item_6       1200   504 White Potion
+  item_7         40   506 Green Potion
+  item_8        800   645 Concentration Potion
+  item_9       1500   656 Awakening Potion
+  item_10       400   713 Empty Bottle
+  item_11        60   601 Fly Wing
+  item_12       300   602 Butterfly Wing
+  item_13     20000  2243 Geek Glasses
+}
+npcStore {
+  id 50470
+  name Weapon Dealer
+  location alberta_in 188 21
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          3  1751 Silver Arrow
+  item_3        100  1101 Sword
+  item_4       1500  1104 Falchion
+  item_5       2900  1107 Blade
+  item_6         50  1201 Knife
+  item_7       1250  1204 Cutter
+  item_8       2400  1207 Main Gauche
+  item_9         50  1601 Rod
+  item_10      1000  1701 Bow
+  item_11       500  1301 Axe
+  item_12      5400  1351 Battle Axe
+  item_13     15500  1354 Hammer
+  item_14     34000  1357 Buster
+  item_15     55000  1360 Two-Handed Axe
+}
+npcStore {
+  id 50203
+  name Material Seller#alche
+  location alde_alche 38 184
+  # Item  Price     ID    Item
+  item_1       5000  7143 Glass Tube
+  item_2      20000  7141 Morning Dew of Yggdrasil
+  item_3      60000  7140 Seed of Life
+  item_4        600  6248 Melange Pot
+  item_5        300  6250 Cooking Skewer
+  item_6        300  6251 Black Charcoal
+  item_7        500  6255 Large Cookpot
+  item_8        500  6261 Fine Noodle
+  item_9        400  6262 Cool Gravy
+  item_10       300  6297 Bottle Throw
+}
+npcStore {
+  id 50206
+  name Armor Dealer
+  location aldeba_in 20 60
+  # Item  Price     ID    Item
+  item_1      44000  2228 Helm
+  item_2      14000  2103 Buckler
+  item_3      56000  2105 Shield
+  item_4      10000  2307 Mantle
+  item_5      22000  2309 Coat
+  item_6      48000  2312 Padded Armor
+  item_7      65000  2314 Chain Mail
+  item_8      80000  2316 Full Plate
+  item_9      32000  2505 Manteau
+  item_10     18000  2405 Boots
+  item_11       400  2628 Novice Armlet
+  item_12     20000  2627 Belt
+}
+npcStore {
+  id 50205
+  name Weapon Dealer
+  location aldeba_in 28 54
+  # Item  Price     ID    Item
+  item_1         50  1201 Knife
+  item_2       1250  1204 Cutter
+  item_3       2400  1207 Main Gauche
+  item_4       8500  1210 Dirk
+  item_5      14000  1213 Dagger
+  item_6      19500  1216 Stiletto
+  item_7      43000  1219 Gladius
+  item_8      49000  1222 Damascus
+}
+npcStore {
+  id 50204
+  name Tool Dealer
+  location aldeba_in 94 56
+  # Item  Price     ID    Item
+  item_1         50   501 Red Potion
+  item_2        200   502 Orange Potion
+  item_3        550   503 Yellow Potion
+  item_4       1200   504 White Potion
+  item_5         40   506 Green Potion
+  item_6        800   645 Concentration Potion
+  item_7       1500   656 Awakening Potion
+  item_8        400   713 Empty Bottle
+  item_9         60   601 Fly Wing
+  item_10       300   602 Butterfly Wing
+  item_11        40   611 Magnifier
+  item_12      4000   610 Yggdrasil Leaf
+}
+npcStore {
+  id 50212
+  name Chef Assistant
+  location aldebaran 165 107
+  # Item  Price     ID    Item
+  item_1       1000  7456 Red Spice
+  item_2       1000  7452 Yellow Spice
+  item_3        150   580 Bread
+}
+npcStore {
+  id 51224
+  name Weapon Dealer
+  location ama_in01 102 28
+  # Item  Price     ID    Item
+  item_1       2400  1207 Main Gauche
+  item_2      19500  1216 Stiletto
+  item_3       2900  1107 Blade
+  item_4      24000  1122 Ring Pommel Saber
+  item_5       2000  1116 Katana
+  item_6      22500  1154 Bastard Sword
+  item_7       3450  1407 Pike
+  item_8      27000  1457 Partizan
+  item_9      15500  1354 Hammer
+  item_10     23000  1519 Chain
+}
+npcStore {
+  id 51222
+  name Tool Dealer
+  location ama_in01 24 30
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          2  1770 Iron Arrow
+  item_3         40   611 Magnifier
+  item_4         50   501 Red Potion
+  item_5        200   502 Orange Potion
+  item_6        550   503 Yellow Potion
+  item_7       1200   504 White Potion
+  item_8         40   506 Green Potion
+  item_9        800   645 Concentration Potion
+  item_10      1500   656 Awakening Potion
+  item_11       400   713 Empty Bottle
+  item_12        60   601 Fly Wing
+  item_13       300   602 Butterfly Wing
+  item_14       100  1065 Trap
+}
+npcStore {
+  id 51223
+  name Armor Dealer
+  location ama_in01 89 28
+  # Item  Price     ID    Item
+  item_1        400  2211 Bandana
+  item_2        400  2401 Sandals
+  item_3       3500  2403 Shoes
+  item_4       1000  2501 Hood
+  item_5       5000  2503 Muffler
+  item_6        500  2101 Guard
+  item_7      14000  2103 Buckler
+  item_8       1000  2305 Adventurer's Suit
+  item_9       8000  2321 Silk Robe
+  item_10      7000  2332 Silver Robe
+  item_11      5500  2328 Wooden Mail
+  item_12     20000  2627 Belt
+}
+npcStore {
+  id 51227
+  name Chef Assistant
+  location amatsu 206 150
+  # Item  Price     ID    Item
+  item_1        700  7453 Sweet Sauce
+  item_2        250   579 Fresh Fish
+}
+npcStore {
+  id 51229
+  name Pet Groomer#bra
+  location brasilis 201 309
+  # Item  Price     ID    Item
+  item_1       1000   537 Pet Food
+  item_2       3000   643 Pet Incubator
+  item_3       1500 10013 Poring Pet Backpack
+  item_4       2000 10014 Rocker Glasses
+  item_5        100   554 Mochi
+  item_6       1000  6114 Flame Gemstone
+  item_7       1000  6113 Blue Vital Flower
+  item_8       1000  6110 Yellow Vital Flower
+  item_9       1000  6115 Bun
+  item_10      1000  6100 Damp Darkness
+  item_11      1000  6098 Small Snow Flower
+  item_12      1000  6112 Fresh Plant
+  item_13      1000  6104 Big Cell
+  item_14      1000  6108 Apple Pudding
+  item_15      1000  6111 Mystic Stone
+  item_16      1000  6095 Flavored Alcohol
+  item_17        20  6099 Grilled Rice Cake
+  item_18        20  6096 Fish With Blue Back
+  item_19      1000  6098 Small Snow Flower
+  item_20      1000  6108 Apple Pudding
+  item_21      1000  6115 Bun
+  item_22      1000  6112 Fresh Plant
+  item_23      1000  6104 Big Cell
+  item_24        20  6097 Pumpkin Pie
+  item_25        20  7821 Green Apple
+  item_26        20  6094 Traditional Cookie
+  item_27        20  6109 Plant Neutrient
+  item_28        20  6105 Morning Dew
+  item_29        20  7824 Spirit Liquor
+  item_30        20  6107 Sunset on the Rock
+  item_31        20  7766 Bok Choy
+  item_32        20  7823 Meat Veg Skewer
+  item_33        20  6106 Well Ripened Berry
+}
+npcStore {
+  id 51228
+  name Fruit Gardener#bra
+  location brasilis 221 128
+  # Item  Price     ID    Item
+  item_1       1500 11515 Coconut
+  item_2         15   513 Banana
+  item_3         15 11516 Asai Fruit
+}
+npcStore {
+  id 51230
+  name Weapon Dealer
+  location brasilis 244 243
+  # Item  Price     ID    Item
+  item_1       3450  1407 Pike
+  item_2      27000  1457 Partizan
+  item_3      15500  1354 Hammer
+  item_4      23000  1519 Chain
+  item_5      52000 13003 Cowardice Blade
+}
+npcStore {
+  id 51231
+  name Tool Dealer
+  location brasilis 252 257
+  # Item  Price     ID    Item
+  item_1        800   645 Concentration Potion
+  item_2       1500   656 Awakening Potion
+  item_3         60   601 Fly Wing
+  item_4        300   602 Butterfly Wing
+  item_5         40   611 Magnifier
+  item_6        100  1065 Trap
+  item_7       4000   610 Yggdrasil Leaf
+}
+npcStore {
+  id 50143
+  name Weapon Dealer
+  location cmd_fild07 250 98
+  # Item  Price     ID    Item
+  item_1        150  1401 Javelin
+  item_2       1700  1404 Spear
+  item_3       3450  1407 Pike
+  item_4      13000  1451 Guisarme
+  item_5      20000  1454 Glaive
+  item_6      27000  1457 Partizan
+  item_7      51000  1460 Trident
+  item_8      54000  1463 Halberd
+  item_9      60000  1410 Lance
+}
+npcStore {
+  id 50142
+  name Tool Dealer
+  location cmd_fild07 257 126
+  # Item  Price     ID    Item
+  item_1          2  1770 Iron Arrow
+  item_2         50   501 Red Potion
+  item_3        200   502 Orange Potion
+  item_4        550   503 Yellow Potion
+  item_5       1200   504 White Potion
+  item_6        800   645 Concentration Potion
+  item_7       1500   656 Awakening Potion
+  item_8        400   713 Empty Bottle
+  item_9         60   601 Fly Wing
+  item_10       300   602 Butterfly Wing
+  item_11        40   611 Magnifier
+  item_12       100  1065 Trap
+}
+npcStore {
+  id 50144
+  name Armor Dealer
+  location cmd_fild07 277 85
+  # Item  Price     ID    Item
+  item_1      12000  2226 Cap
+  item_2      44000  2228 Helm
+  item_3      14000  2103 Buckler
+  item_4      56000  2105 Shield
+  item_5      18000  2405 Boots
+  item_6       5000  2503 Muffler
+  item_7      32000  2505 Manteau
+  item_8       1000  2305 Adventurer's Suit
+  item_9       8000  2321 Silk Robe
+  item_10     10000  2307 Mantle
+  item_11     22000  2309 Coat
+  item_12     74000  2335 Thief Clothes
+  item_13     48000  2312 Padded Armor
+  item_14     65000  2314 Chain Mail
+  item_15     80000  2316 Full Plate
+}
+npcStore {
+  id 50594
+  name Armor Dealer
+  location hu_in01 94 313
+  # Item  Price     ID    Item
+  item_1         20  2224 Goggles
+  item_2       7500  2232 Circlet
+  item_3      12000  2226 Cap
+  item_4        500  2101 Guard
+  item_5      14000  2103 Buckler
+  item_6        400  2401 Sandals
+  item_7       1000  2501 Hood
+  item_8      10000  2307 Mantle
+  item_9      56000  2105 Shield
+}
+npcStore {
+  id 50797
+  name Vendor from Milk Ranch
+  location izlude 128 158
+  # Item  Price     ID    Item
+  item_1         25   519 Milk
+}
+npcStore {
+  id 50796
+  name Butcher
+  location izlude 160 186
+  # Item  Price     ID    Item
+  item_1         50   517 Meat
+}
+npcStore {
+  id 50798
+  name Weapon Dealer
+  location izlude_in 60 127
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          3  1751 Silver Arrow
+  item_3       1000  1701 Bow
+  item_4         50  1601 Rod
+  item_5         50  1201 Knife
+  item_6       1250  1204 Cutter
+  item_7       2400  1207 Main Gauche
+  item_8        100  1101 Sword
+  item_9       1500  1104 Falchion
+  item_10      2900  1107 Blade
+  item_11      2000  1116 Katana
+  item_12     15000  1151 Slayer
+  item_13     22500  1154 Bastard Sword
+  item_14     60000  1157 Two-Handed Sword
+  item_15     65000  1160 Broad Sword
+  item_16       500  1301 Axe
+}
+npcStore {
+  id 50799
+  name Armor Dealer
+  location izlude_in 70 127
+  # Item  Price     ID    Item
+  item_1      14000  2103 Buckler
+  item_2      56000  2105 Shield
+  item_3       3500  2403 Shoes
+  item_4      18000  2405 Boots
+  item_5       5000  2503 Muffler
+  item_6      32000  2505 Manteau
+  item_7      12000  2226 Cap
+  item_8      44000  2228 Helm
+  item_9        200  2303 Jacket
+  item_10      1000  2305 Adventurer's Suit
+  item_11      5500  2328 Wooden Mail
+  item_12     10000  2307 Mantle
+  item_13     22000  2309 Coat
+  item_14     48000  2312 Padded Armor
+  item_15     65000  2314 Chain Mail
+  item_16     80000  2316 Full Plate
+  item_17       400  2628 Novice Armlet
+}
+npcStore {
+  id 51114
+  name Vegetable Gardener
+  location lhz_in02 17 220
+  # Item  Price     ID    Item
+  item_1         15   515 Carrot
+  item_2         15   516 Potato
+  item_3         15   535 Pumpkin
+}
+npcStore {
+  id 51110
+  name Armor Dealer
+  location lhz_in02 271 99
+  # Item  Price     ID    Item
+  item_1        500  2101 Guard
+  item_2      14000  2103 Buckler
+  item_3       3500  2403 Shoes
+  item_4      18000  2405 Boots
+  item_5       5000  2503 Muffler
+  item_6       8000  2321 Silk Robe
+  item_7      65000  2314 Chain Mail
+  item_8      22000  2309 Coat
+  item_9      74000  2335 Thief Clothes
+  item_10       400  2628 Novice Armlet
+}
+npcStore {
+  id 51109
+  name Wand Dealer
+  location lhz_in02 273 35
+  # Item  Price     ID    Item
+  item_1         50  1601 Rod
+  item_2       2500  1604 Wand
+  item_3       9500  1607 Staff
+  item_4      85000  1617 Survivor's Rod (Dex)
+  item_5      85000  1619 Survivor's Rod (Int)
+}
+npcStore {
+  id 51108
+  name Weapon Dealer
+  location lhz_in02 276 99
+  # Item  Price     ID    Item
+  item_1         50  1201 Knife
+  item_2       2400  1207 Main Gauche
+  item_3      19500  1216 Stiletto
+  item_4       2900  1107 Blade
+  item_5      24000  1122 Ring Pommel Saber
+  item_6       2000  1116 Katana
+  item_7      22500  1154 Bastard Sword
+  item_8       3450  1407 Pike
+  item_9      27000  1457 Partizan
+  item_10     15500  1354 Hammer
+  item_11     23000  1519 Chain
+  item_12     52000 13003 Cowardice Blade
+}
+npcStore {
+  id 51120
+  name Tool Dealer
+  location lhz_in02 31 145
+  # Item  Price     ID    Item
+  item_1         40   611 Magnifier
+  item_2        550   503 Yellow Potion
+  item_3       1200   504 White Potion
+  item_4         40   506 Green Potion
+  item_5       3000   657 Berserk Potion
+  item_6       1500   656 Awakening Potion
+  item_7        400   713 Empty Bottle
+  item_8         60   601 Fly Wing
+  item_9        300   602 Butterfly Wing
+  item_10       100  1065 Trap
+  item_11      4000   610 Yggdrasil Leaf
+  item_12         2  1770 Iron Arrow
+}
+npcStore {
+  id 51115
+  name Butcher
+  location lhz_in02 32 219
+  # Item  Price     ID    Item
+  item_1         50   517 Meat
+}
+npcStore {
+  id 51116
+  name Gift Merchant
+  location lhz_in02 38 145
+  # Item  Price     ID    Item
+  item_1       3000   734 Red Frame
+  item_2       5000   735 Chung Jah
+  item_3       1000   736 China
+  item_4        400   737 Black Ladle
+  item_5       1400   746 Glass Bead
+}
+npcStore {
+  id 51117
+  name Wedding Shop Dealer
+  location lhz_in02 47 148
+  # Item  Price     ID    Item
+  item_1       2000   744 Bouquet
+  item_2      12000   745 Wedding Bouquet
+  item_3      43000  2338 Wedding Dress
+  item_4      23000  2206 Wedding Veil
+  item_5      43000  7170 Tuxedo
+}
+npcStore {
+  id 51118
+  name Doll Supplier
+  location lhz_in02 85 216
+  # Item  Price     ID    Item
+  item_1       1000   740 Puppet
+  item_2       1800   741 Poring Doll
+  item_3       3000   742 Chonchon Doll
+}
+npcStore {
+  id 51119
+  name Toy Supplier
+  location lhz_in02 87 208
+  # Item  Price     ID    Item
+  item_1      20000  2243 Geek Glasses
+  item_2       1000  2212 Eye Patch
+  item_3      24000  2242 Purple Glasses
+  item_4       5000  2241 Grampa Beard
+}
+npcStore {
+  id 51121
+  name Tool Dealer
+  location lhz_in03 239 106
+  # Item  Price     ID    Item
+  item_1         50   501 Red Potion
+  item_2        200   502 Orange Potion
+  item_3         40   506 Green Potion
+  item_4        800   645 Concentration Potion
+  item_5       1500   656 Awakening Potion
+  item_6        400   713 Empty Bottle
+  item_7         60   601 Fly Wing
+  item_8        300   602 Butterfly Wing
+  item_9        100  1065 Trap
+  item_10        40   611 Magnifier
+}
+npcStore {
+  id 51123
+  name Merchant
+  location lhz_in03 249 24
+  # Item  Price     ID    Item
+  item_1        160   911 Scell
+  item_2         40   910 Garlet
+  item_3        480   912 Zargon
+  item_4         60   528 Monster's Feed
+}
+npcStore {
+  id 51122
+  name Arrow Merchant
+  location lhz_in03 258 101
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          2  1770 Iron Arrow
+  item_3          3  1752 Fire Arrow
+  item_4          3  1751 Silver Arrow
+}
+npcStore {
+  id 51103
+  name Flower Girl
+  location lighthalzen 112 44
+  # Item  Price     ID    Item
+  item_1          2   712 Flower
+  item_2       2000   744 Bouquet
+  item_3      55000   748 Witherless Rose
+}
+npcStore {
+  id 51106
+  name Vegetable Gardener
+  location lighthalzen 124 129
+  # Item  Price     ID    Item
+  item_1         15   515 Carrot
+  item_2         15   516 Potato
+  item_3         15   535 Pumpkin
+}
+npcStore {
+  id 51124
+  name Chef Assistant
+  location lighthalzen 126 126
+  # Item  Price     ID    Item
+  item_1       1000  7456 Red Spice
+  item_2       1000  7452 Yellow Spice
+}
+npcStore {
+  id 51104
+  name Vendor from Milk Ranch
+  location lighthalzen 220 122
+  # Item  Price     ID    Item
+  item_1         25   519 Milk
+}
+npcStore {
+  id 51107
+  name Pet Groomer
+  location lighthalzen 222 191
+  # Item  Price     ID    Item
+  item_1       1000   537 Pet Food
+  item_2       3000   643 Pet Incubator
+  item_3       1500 10013 Poring Pet Backpack
+  item_4       2000 10014 Rocker Glasses
+  item_5       1000  6115 Bun
+  item_6        100   554 Mochi
+  item_7       1000  6114 Flame Gemstone
+  item_8       1000  6113 Blue Vital Flower
+  item_9       1000  6110 Yellow Vital Flower
+  item_10      1000  6115 Bun
+  item_11      1000  6100 Damp Darkness
+  item_12      1000  6098 Small Snow Flower
+  item_13      1000  6112 Fresh Plant
+  item_14      1000  6104 Big Cell
+  item_15      1000  6108 Apple Pudding
+  item_16      1000  6111 Mystic Stone
+  item_17      1000  6095 Flavored Alcohol
+  item_18        20  6099 Grilled Rice Cake
+  item_19        20  6096 Fish With Blue Back
+  item_20      1000  6098 Small Snow Flower
+  item_21      1000  6108 Apple Pudding
+  item_22      1000  6115 Bun
+  item_23      1000  6112 Fresh Plant
+  item_24      1000  6104 Big Cell
+  item_25        20  6097 Pumpkin Pie
+  item_26        20  7821 Green Apple
+  item_27        20  6094 Traditional Cookie
+  item_28        20  6109 Plant Neutrient
+  item_29        20  6105 Morning Dew
+  item_30        20  7824 Spirit Liquor
+  item_31        20  6107 Sunset on the Rock
+  item_32        20  7766 Bok Choy
+  item_33        20  7823 Meat Veg Skewer
+  item_34        20  6106 Well Ripened Berry
+}
+npcStore {
+  id 51105
+  name Fruit Gardener
+  location lighthalzen 69 75
+  # Item  Price     ID    Item
+  item_1         15   512 Apple
+  item_2         15   513 Banana
+}
+npcStore {
+  id 51212
+  name Jeweler
+  location moc_ruins 52 85
+  # Item  Price     ID    Item
+  item_1      10000   730 1carat Diamond
+  item_2      45000  2613 Diamond Ring
+}
+npcStore {
+  id 51218
+  name Trader
+  location moc_ruins 90 149
+  # Item  Price     ID    Item
+  item_1         15   513 Banana
+  item_2         15   513 Banana
+  item_3         15   513 Banana
+  item_4         15   513 Banana
+  item_5         15   513 Banana
+  item_6         15   513 Banana
+}
+npcStore {
+  id 51207
+  name Tool Dealer
+  location moc_ruins 91 128
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2         40   611 Magnifier
+  item_3         50   501 Red Potion
+  item_4        200   502 Orange Potion
+  item_5        550   503 Yellow Potion
+  item_6       1200   504 White Potion
+  item_7         40   506 Green Potion
+  item_8        800   645 Concentration Potion
+  item_9       1500   656 Awakening Potion
+  item_10       400   713 Empty Bottle
+  item_11        60   601 Fly Wing
+  item_12       300   602 Butterfly Wing
+  item_13       100  1065 Trap
+}
+npcStore {
+  id 51226
+  name Chef Assistant
+  location moc_ruins 115 123
+  # Item  Price     ID    Item
+  item_1        700  7455 Spicy Sauce
+  item_2        700  7453 Sweet Sauce
+  item_3        700  7454 Savory Sauce
+  item_4       1000  7456 Red Spice
+  item_5       1000  7452 Yellow Spice
+}
+npcStore {
+  id 51219
+  name Pet Groomer
+  location moc_ruins 118 170
+  # Item  Price     ID    Item
+  item_1       1000   537 Pet Food
+  item_2       3000   643 Pet Incubator
+  item_3       1500 10013 Poring Pet Backpack
+  item_4       2000 10014 Rocker Glasses
+  item_5        100   554 Mochi
+  item_6       1000  6115 Bun
+  item_7       1000  6114 Flame Gemstone
+  item_8       1000  6113 Blue Vital Flower
+  item_9       1000  6110 Yellow Vital Flower
+  item_10      1000  6115 Bun
+  item_11      1000  6100 Damp Darkness
+  item_12      1000  6098 Small Snow Flower
+  item_13      1000  6112 Fresh Plant
+  item_14      1000  6104 Big Cell
+  item_15      1000  6108 Apple Pudding
+  item_16      1000  6111 Mystic Stone
+  item_17      1000  6095 Flavored Alcohol
+  item_18        20  6099 Grilled Rice Cake
+  item_19        20  6096 Fish With Blue Back
+  item_20      1000  6098 Small Snow Flower
+  item_21      1000  6108 Apple Pudding
+  item_22      1000  6115 Bun
+  item_23      1000  6112 Fresh Plant
+  item_24      1000  6104 Big Cell
+  item_25        20  6097 Pumpkin Pie
+  item_26        20  7821 Green Apple
+  item_27        20  6094 Traditional Cookie
+  item_28        20  6109 Plant Neutrient
+  item_29        20  6105 Morning Dew
+  item_30        20  7824 Spirit Liquor
+  item_31        20  6107 Sunset on the Rock
+  item_32        20  7766 Bok Choy
+  item_33        20  7823 Meat Veg Skewer
+  item_34        20  6106 Well Ripened Berry
+}
+npcStore {
+  id 51209
+  name Item Collector
+  location moc_ruins 93 53
+  # Item  Price     ID    Item
+  item_1        160   911 Scell
+  item_2         60   528 Monster's Feed
+  item_3         36   919 Animal Skin
+  item_4         64   925 Bill of Birds
+}
+npcStore {
+  id 51217
+  name Butcher
+  location moc_ruins 87 109
+  # Item  Price     ID    Item
+  item_1         50   517 Meat
+}
+npcStore {
+  id 51220
+  name Weapon Dealer
+  location morocc_in 141 67
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          3  1751 Silver Arrow
+  item_3       1000  1701 Bow
+  item_4         50  1601 Rod
+  item_5         50  1201 Knife
+  item_6       1250  1204 Cutter
+  item_7       2400  1207 Main Gauche
+  item_8       8500  1210 Dirk
+  item_9      14000  1213 Dagger
+  item_10     19500  1216 Stiletto
+  item_11     43000  1219 Gladius
+  item_12     49000  1222 Damascus
+  item_13     19500  1250 Jur
+  item_14     41000  1252 Katar
+  item_15     37200  1254 Jamadhar
+}
+npcStore {
+  id 51221
+  name Armor Dealer
+  location morocc_in 141 60
+  # Item  Price     ID    Item
+  item_1        500  2101 Guard
+  item_2      14000  2103 Buckler
+  item_3        400  2401 Sandals
+  item_4       3500  2403 Shoes
+  item_5      18000  2405 Boots
+  item_6       1000  2501 Hood
+  item_7       5000  2503 Muffler
+  item_8        300  2218 Flu Mask
+  item_9         10  2301 Cotton Shirt
+  item_10       200  2303 Jacket
+  item_11      1000  2305 Adventurer's Suit
+  item_12      8000  2321 Silk Robe
+  item_13      5500  2328 Wooden Mail
+  item_14      7000  2332 Silver Robe
+  item_15     10000  2307 Mantle
+  item_16     22000  2309 Coat
+  item_17     74000  2335 Thief Clothes
+  item_18       400  2628 Novice Armlet
+}
+npcStore {
+  id 50487
+  name Trap Specialist
+  location payon 123 109
+  # Item  Price     ID    Item
+  item_1        200  7940 Special Alloy Trap
+  item_2      30000 12341 Special Alloy Trap Box
+}
+npcStore {
+  id 50472
+  name Tool Dealer
+  location payon 159 96
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2         50   501 Red Potion
+  item_3        200   502 Orange Potion
+  item_4        550   503 Yellow Potion
+  item_5       1200   504 White Potion
+  item_6        800   645 Concentration Potion
+  item_7        400   713 Empty Bottle
+  item_8         60   601 Fly Wing
+  item_9        300   602 Butterfly Wing
+}
+npcStore {
+  id 50473
+  name Pet Groomer
+  location payon 177 131
+  # Item  Price     ID    Item
+  item_1       1000   537 Pet Food
+  item_2       3000   643 Pet Incubator
+  item_3       1500 10013 Poring Pet Backpack
+  item_4       2000 10014 Rocker Glasses
+  item_5       1000  6115 Bun
+  item_6        100   554 Mochi
+  item_7       1000  6114 Flame Gemstone
+  item_8       1000  6113 Blue Vital Flower
+  item_9       1000  6110 Yellow Vital Flower
+  item_10      1000  6115 Bun
+  item_11      1000  6100 Damp Darkness
+  item_12      1000  6098 Small Snow Flower
+  item_13      1000  6112 Fresh Plant
+  item_14      1000  6104 Big Cell
+  item_15      1000  6108 Apple Pudding
+  item_16      1000  6111 Mystic Stone
+  item_17      1000  6095 Flavored Alcohol
+  item_18        20  6099 Grilled Rice Cake
+  item_19        20  6096 Fish With Blue Back
+  item_20      1000  6098 Small Snow Flower
+  item_21      1000  6108 Apple Pudding
+  item_22      1000  6115 Bun
+  item_23      1000  6112 Fresh Plant
+  item_24      1000  6104 Big Cell
+  item_25        20  6097 Pumpkin Pie
+  item_26        20  7821 Green Apple
+  item_27        20  6094 Traditional Cookie
+  item_28        20  6109 Plant Neutrient
+  item_29        20  6105 Morning Dew
+  item_30        20  7824 Spirit Liquor
+  item_31        20  6107 Sunset on the Rock
+  item_32        20  7766 Bok Choy
+  item_33        20  7823 Meat Veg Skewer
+  item_34        20  6106 Well Ripened Berry
+}
+npcStore {
+  id 50484
+  name Chef Assistant
+  location payon 206 119
+  # Item  Price     ID    Item
+  item_1        700  7455 Spicy Sauce
+}
+npcStore {
+  id 50482
+  name Weapon Dealer
+  location payon_in01 5 129
+  # Item  Price     ID    Item
+  item_1      42000  1146 Town Sword
+  item_2      40000  1245 Cinquedea
+}
+npcStore {
+  id 50474
+  name Tool Dealer
+  location payon_in01 5 49
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2         40   611 Magnifier
+  item_3         50   501 Red Potion
+  item_4        200   502 Orange Potion
+  item_5        550   503 Yellow Potion
+  item_6       1200   504 White Potion
+  item_7         40   506 Green Potion
+  item_8        800   645 Concentration Potion
+  item_9       1500   656 Awakening Potion
+  item_10       400   713 Empty Bottle
+  item_11        60   601 Fly Wing
+  item_12       300   602 Butterfly Wing
+  item_13       100  1065 Trap
+}
+npcStore {
+  id 50476
+  name Armor Dealer
+  location payon_in01 7 119
+  # Item  Price     ID    Item
+  item_1        400  2401 Sandals
+  item_2       3500  2403 Shoes
+  item_3      18000  2405 Boots
+  item_4       1000  2501 Hood
+  item_5       5000  2503 Muffler
+  item_6      32000  2505 Manteau
+  item_7        800  2208 Ribbon
+  item_8        400  2211 Bandana
+  item_9       1000  2212 Eye Patch
+  item_10        10  2301 Cotton Shirt
+  item_11       200  2303 Jacket
+  item_12      1000  2305 Adventurer's Suit
+  item_13      8000  2321 Silk Robe
+  item_14      5500  2328 Wooden Mail
+  item_15      7000  2332 Silver Robe
+  item_16     10000  2307 Mantle
+  item_17     22000  2309 Coat
+  item_18     71000  2330 Tights
+  item_19       400  2628 Novice Armlet
+}
+npcStore {
+  id 50477
+  name Tool Dealer
+  location payon_in02 87 34
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          3  1751 Silver Arrow
+  item_3         40   611 Magnifier
+  item_4         50   501 Red Potion
+  item_5        200   502 Orange Potion
+  item_6        550   503 Yellow Potion
+  item_7       1200   504 White Potion
+  item_8         40   506 Green Potion
+  item_9        800   645 Concentration Potion
+  item_10      1500   656 Awakening Potion
+  item_11       400   713 Empty Bottle
+  item_12        60   601 Fly Wing
+  item_13       300   602 Butterfly Wing
+  item_14       100  1065 Trap
+}
+npcStore {
+  id 50350
+  name Armor Dealer
+  location ra_in01 175 364
+  # Item  Price     ID    Item
+  item_1        500  2101 Guard
+  item_2      14000  2103 Buckler
+  item_3       3500  2403 Shoes
+  item_4      18000  2405 Boots
+  item_5       5000  2503 Muffler
+  item_6       8000  2321 Silk Robe
+  item_7      65000  2314 Chain Mail
+  item_8      22000  2309 Coat
+  item_9      74000  2335 Thief Clothes
+  item_10       400  2628 Novice Armlet
+}
+npcStore {
+  id 50349
+  name Weapon Dealer
+  location ra_in01 176 389
+  # Item  Price     ID    Item
+  item_1         50  1201 Knife
+  item_2       2400  1207 Main Gauche
+  item_3      19500  1216 Stiletto
+  item_4       2900  1107 Blade
+  item_5      24000  1122 Ring Pommel Saber
+  item_6       2000  1116 Katana
+  item_7      22500  1154 Bastard Sword
+  item_8       3450  1407 Pike
+  item_9      27000  1457 Partizan
+  item_10     15500  1354 Hammer
+  item_11     23000  1519 Chain
+  item_12     52000 13003 Cowardice Blade
+  item_13        50  1601 Rod
+  item_14      2500  1604 Wand
+  item_15      9500  1607 Staff
+}
+npcStore {
+  id 50348
+  name Fruit Guardner
+  location ra_in01 254 300
+  # Item  Price     ID    Item
+  item_1         15   512 Apple
+  item_2         15   513 Banana
+}
+npcStore {
+  id 50353
+  name Black Marketeer
+  location ra_in01 257 266
+  # Item  Price     ID    Item
+  item_1      20000  2139 Flame Thrower
+  item_2     100000  2800 Accelerator
+  item_3     100000  2801 Hovering Booster
+  item_4     500000  2802 Suicidal Device
+  item_5     100000  2803 Shape Shifter
+  item_6     100000  2804 Cooling Device
+  item_7     100000  2805 Magnetic Field Generator
+  item_8     150000  2806 Barrier Builder
+  item_9     200000  2807 Repair Kit
+  item_10       100 18000 Cannon Ball
+  item_11       200 18001 Holy Cannon Ball
+  item_12       200 18002 Dark Cannon Ball
+  item_13       200 18003 Soul Cannon Ball
+  item_14       500 18004 Iron Cannon Ball
+  item_15       275 12392 Repair A
+  item_16       625 12393 Repair B
+  item_17      1375 12394 Repair C
+  item_18        10  6145 Vulcan Bullet
+  item_19       300  6146 Magic Gear Fuel
+  item_20       100  6147 Liquid Condensed Bullet
+  item_21       500  6186 Monkey Wrench
+  item_22    250000  2808 Camouflage Generator
+}
+npcStore {
+  id 50347
+  name Tool Dealer
+  location ra_in01 257 269
+  # Item  Price     ID    Item
+  item_1         50   501 Red Potion
+  item_2        200   502 Orange Potion
+  item_3        550   503 Yellow Potion
+  item_4       1200   504 White Potion
+  item_5         40   506 Green Potion
+  item_6        800   645 Concentration Potion
+  item_7       1500   656 Awakening Potion
+  item_8        400   713 Empty Bottle
+  item_9         60   601 Fly Wing
+  item_10       300   602 Butterfly Wing
+  item_11        40   611 Magnifier
+  item_12       100  1065 Trap
+  item_13      4000   610 Yggdrasil Leaf
+}
+npcStore {
+  id 50352
+  name Trap Specialist
+  location ra_in01 263 281
+  # Item  Price     ID    Item
+  item_1        200  7940 Special Alloy Trap
+  item_2      30000 12341 Special Alloy Trap Box
+}
+npcStore {
+  id 50351
+  name Vegetable Gardener
+  location rachel 65 80
+  # Item  Price     ID    Item
+  item_1         15   515 Carrot
+  item_2         15   516 Potato
+  item_3         15   535 Pumpkin
+}
+npcStore {
+  id 50145
+  name Tool Dealer
+  location um_in 104 124
+  # Item  Price     ID    Item
+  item_1         15   512 Apple
+  item_2         15   515 Carrot
+  item_3         15   535 Pumpkin
+  item_4         15   516 Potato
+  item_5         15   513 Banana
+  item_6         50   517 Meat
+  item_7         60   528 Monster's Feed
+  item_8       1000   537 Pet Food
+  item_9         60   601 Fly Wing
+  item_10       300   602 Butterfly Wing
+  item_11       800   645 Concentration Potion
+  item_12      1500   656 Awakening Potion
+  item_13      4000   610 Yggdrasil Leaf
+  item_14       400   713 Empty Bottle
+}
+npcStore {
+  id 50146
+  name Weapon Dealer
+  location um_in 160 125
+  # Item  Price     ID    Item
+  item_1        120  1501 Club
+  item_2       1600  1504 Mace
+  item_3       9000  1507 Smasher
+  item_4      16000  1510 Flail
+  item_5      41000  1513 Morning Star
+  item_6      23000  1519 Chain
+  item_7      53000  1807 Fist
+  item_8      58000  1811 Finger
+  item_9      67000  1809 Claw
+}
+npcStore {
+  id 50148
+  name Chef Assistant
+  location umbala 102 154
+  # Item  Price     ID    Item
+  item_1       1000  7456 Red Spice
+  item_2        200   577 Bag of Grain
+}
+npcStore {
+  id 50601
+  name Tool Dealer
+  location ve_in 243 303
+  # Item  Price     ID    Item
+  item_1         50   501 Red Potion
+  item_2        200   502 Orange Potion
+  item_3        550   503 Yellow Potion
+  item_4       1200   504 White Potion
+  item_5         40   506 Green Potion
+  item_6        800   645 Concentration Potion
+  item_7       1500   656 Awakening Potion
+  item_8        400   713 Empty Bottle
+  item_9         60   601 Fly Wing
+  item_10       300   602 Butterfly Wing
+  item_11        40   611 Magnifier
+  item_12       100  1065 Trap
+  item_13      4000   610 Yggdrasil Leaf
+}
+npcStore {
+  id 50603
+  name Magical Item Seller
+  location ve_in 252 313
+  # Item  Price     ID    Item
+  item_1        600   717 Blue Gemstone
+  item_2         50  1601 Rod
+  item_3       2500  1604 Wand
+  item_4       9500  1607 Staff
+  item_5      45000  1610 Arc Wand
+  item_6       7500  2232 Circlet
+  item_7       8000  2321 Silk Robe
+  item_8       7000  2332 Silver Robe
+}
+npcStore {
+  id 50598
+  name Weapon Dealer
+  location ve_in 386 245
+  # Item  Price     ID    Item
+  item_1         50  1201 Knife
+  item_2       2400  1207 Main Gauche
+  item_3      19500  1216 Stiletto
+  item_4       2900  1107 Blade
+  item_5      24000  1122 Ring Pommel Saber
+  item_6       2000  1116 Katana
+  item_7      22500  1154 Bastard Sword
+}
+npcStore {
+  id 50600
+  name Armor Dealer
+  location ve_in 374 230
+  # Item  Price     ID    Item
+  item_1        500  2101 Guard
+  item_2      14000  2103 Buckler
+  item_3       3500  2403 Shoes
+  item_4      18000  2405 Boots
+  item_5       5000  2503 Muffler
+  item_6       8000  2321 Silk Robe
+  item_7      65000  2314 Chain Mail
+  item_8      22000  2309 Coat
+  item_9      74000  2335 Thief Clothes
+  item_10       400  2628 Novice Armlet
+}
+npcStore {
+  id 50877
+  name Pet Groomer
+  location yuno 197 114
+  # Item  Price     ID    Item
+  item_1       1000   537 Pet Food
+  item_2       3000   643 Pet Incubator
+  item_3       1500 10013 Poring Pet Backpack
+  item_4       2000 10014 Rocker Glasses
+  item_5       1000  6115 Bun
+  item_6        100   554 Mochi
+  item_7       1000  6114 Flame Gemstone
+  item_8       1000  6113 Blue Vital Flower
+  item_9       1000  6110 Yellow Vital Flower
+  item_10      1000  6115 Bun
+  item_11      1000  6100 Damp Darkness
+  item_12      1000  6098 Small Snow Flower
+  item_13      1000  6112 Fresh Plant
+  item_14      1000  6104 Big Cell
+  item_15      1000  6108 Apple Pudding
+  item_16      1000  6111 Mystic Stone
+  item_17      1000  6095 Flavored Alcohol
+  item_18        20  6099 Grilled Rice Cake
+  item_19        20  6096 Fish With Blue Back
+  item_20      1000  6098 Small Snow Flower
+  item_21      1000  6108 Apple Pudding
+  item_22      1000  6115 Bun
+  item_23      1000  6112 Fresh Plant
+  item_24      1000  6104 Big Cell
+  item_25        20  6097 Pumpkin Pie
+  item_26        20  7821 Green Apple
+  item_27        20  6094 Traditional Cookie
+  item_28        20  6109 Plant Neutrient
+  item_29        20  6105 Morning Dew
+  item_30        20  7824 Spirit Liquor
+  item_31        20  6107 Sunset on the Rock
+  item_32        20  7766 Bok Choy
+  item_33        20  7823 Meat Veg Skewer
+  item_34        20  6106 Well Ripened Berry
+}
+npcStore {
+  id 50878
+  name Mr. King's Shop
+  location yuno 205 103
+  # Item  Price     ID    Item
+  item_1      89000  2340 Novice Breastplate
+  item_2      94000  2341 Legion Plate Armor
+  item_3      48000  2411 Greaves
+  item_4       4500  2222 Turban
+  item_5      50000  2230 Gemmed Sallet
+  item_6      89000  1721 Repeating Crossbow
+}
+npcStore {
+  id 50880
+  name Tool Dealer
+  location yuno 226 107
+  # Item  Price     ID    Item
+  item_1        160   911 Scell
+  item_2         40   910 Garlet
+  item_3        480   912 Zargon
+  item_4        400   713 Empty Bottle
+}
+npcStore {
+  id 50874
+  name Weapon Dealer
+  location yuno_in01 103 35
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2          3  1751 Silver Arrow
+  item_3        100  1101 Sword
+  item_4       1000  1701 Bow
+  item_5         50  1201 Knife
+  item_6       1250  1204 Cutter
+  item_7       2400  1207 Main Gauche
+  item_8       8500  1210 Dirk
+  item_9      14000  1213 Dagger
+  item_10     19500  1216 Stiletto
+  item_11        50  1601 Rod
+  item_12      2500  1604 Wand
+  item_13      9500  1607 Staff
+  item_14     45000  1610 Arc Wand
+}
+npcStore {
+  id 50875
+  name Armor Dealer
+  location yuno_in01 112 26
+  # Item  Price     ID    Item
+  item_1        400  2628 Novice Armlet
+  item_2        500  2101 Guard
+  item_3      60000  2107 Mirror Shield
+  item_4        400  2401 Sandals
+  item_5       1000  2501 Hood
+  item_6      50000  2230 Gemmed Sallet
+  item_7         10  2301 Cotton Shirt
+  item_8        200  2303 Jacket
+  item_9       1000  2305 Adventurer's Suit
+  item_10      8000  2321 Silk Robe
+  item_11      7000  2332 Silver Robe
+}
+npcStore {
+  id 50876
+  name Tool Dealer
+  location yuno_in01 25 34
+  # Item  Price     ID    Item
+  item_1          1  1750 Arrow
+  item_2         40   611 Magnifier
+  item_3         50   501 Red Potion
+  item_4        200   502 Orange Potion
+  item_5        550   503 Yellow Potion
+  item_6       1200   504 White Potion
+  item_7         40   506 Green Potion
+  item_8        800   645 Concentration Potion
+  item_9       1500   656 Awakening Potion
+  item_10       400   713 Empty Bottle
+  item_11        60   601 Fly Wing
+  item_12       300   602 Butterfly Wing
+}
+npcStore {
+  id 56395
+  name Scroll Merchant#yuno03
+  location yuno_in03 176 22
+  # Item  Price     ID    Item
+  item_1       4000  7433 Blank Scroll
+}

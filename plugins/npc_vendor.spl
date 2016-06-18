@@ -1,0 +1,546 @@
+our $name = 'npc_vendor';
+our $desc = 'NPC vendor tracking.';
+our $file = 'npc_vendors.txt';
+
+our $state = {};
+our $npcs  = [];
+
+sub hook_start3 {
+    cmd_npcvendor_reload();
+}
+
+sub cmd_npcvendor_closest {
+	my ( $item ) = @_;
+
+	my $args = { item => $item };
+	Plugins::callHook( npcvendor_closest => $args );
+	return if !$args->{return};
+
+	Log::message(
+		sprintf "[%s] Best NPC is [%s] at [%d %d %s].\n",
+		$name,
+		$args->{return}->{target}->{name},
+		$args->{return}->{target}->{x},
+		$args->{return}->{target}->{y},
+		$args->{return}->{target}->{map},
+	);
+}
+
+# Our "task" is a hook, so other code can try to call us.
+sub hook_npcvendor_closest {
+	my ( $args ) = @_;
+
+	# Find all vendors which sell this item.
+	my $npcs = [
+		grep {
+			grep { $_->{name} eq $args->{item} || $_->{nameID} eq $args->{item} }
+				@{ $_->{items} }
+		} @$npcs
+	];
+	return if !@$npcs;
+
+	$args->{return} = closest_location( { map => $field->baseName }, $npcs );
+}
+
+sub closest_location {
+	my ( $current, $locations ) = @_;
+
+	# Restrict results to the current map if it's included.
+	if ( grep { $_->{map} eq $current->{map} } @$locations ) {
+		$locations = [ grep { $_->{map} eq $current->{map} } @$locations ];
+	}
+
+    # Maximum time to spend calculating.
+	my $tmax = 5;
+
+    my $best;
+
+		my $task = CalcMultiMapRoute->new(
+			sourceMap => $current->{map},
+			targets   => $locations,
+			maxTime   => $tmax,
+		);
+		$task->activate;
+		my $t0 = Time::HiRes::time;
+		$task->iterate while Time::HiRes::time - $t0 < $tmax && $task->getStatus == Task::RUNNING;
+		if ( $task->getStatus == Task::DONE && !$task->getError ) {
+			$best = {
+				source => $current,
+				target => $task->{dest},
+				maps   => [ map { $_->{map} } @{ $task->{mapSolution} } ],
+				tiles  => List::Util::sum( 0, map { $_->{walk} || 0 } @{ $task->{mapSolution} } ),
+				zeny   => List::Util::sum( 0, map { $_->{zeny} || 0 } @{ $task->{mapSolution} } ),
+			};
+		} elsif ( $task->getStatus == Task::RUNNING ) {
+			$task->stop;
+		}
+
+    $best;
+}
+
+sub cmd_npcvendor_reload {
+	load_npc_file( $npcs );
+	Log::message( sprintf "[%s] Found %d NPCs selling %d items.\n", $name, scalar @$npcs, scalar map { @{ $_->{items} } } @$npcs );
+}
+
+# Log NPC vendor location.
+sub hook_packet_slash_npc_store_begin {
+	Log::warning( 'hook_packet_slash_npc_store_begin' );
+	my ( $args ) = @_;
+	$state->{npc} = $npcsList->getByID( $args->{ID} );
+}
+
+# Log NPC item lists.
+sub hook_packet_slash_npc_store_info {
+	Log::warning( 'hook_packet_slash_npc_store_info' );
+	return if !$state->{npc};
+
+    # TODO: Once we have the config file loaded in memory, check whether it is changing before we write a modified record.
+	update_npc_file( $state->{npc}, \@storeList );
+}
+
+sub load_npc_file {
+	my ( $npcs ) = @_;
+
+	my $path = Settings::getTableFilename( $file );
+	if ( !$path ) {
+		debug( "[$name] Unable to find file [$file]. Item list will not be saved.\n", $name );
+		return;
+	}
+
+    @$npcs = ();
+	my $npc;
+
+	my $fp = new Utils::TextReader( $path );
+	while ( !$fp->eof ) {
+		my $line = $fp->readLine;
+		if ( !$npc && $line =~ /^\s*npcStore\s*{\s*$/os ) {
+			push @$npcs, $npc = { items => [] };
+		} elsif ( $npc && $line =~ /^\s*\}\s*$/os ) {
+			$npc = undef;
+		} elsif ( $npc && $line =~ /^\s*location\s+(\S+) (\d+) (\d+)\s*$/os ) {
+			$npc->{map} = $1;
+			$npc->{x}   = $2;
+			$npc->{y}   = $3;
+		} elsif ( $npc && $line =~ /^\s*item_(\d+)\s+(\d+)\s+(\d+)\s+(.*?)\s*$/os ) {
+			push @{ $npc->{items} }, {
+				index  => $1,
+				price  => $2,
+				nameID => $3,
+				name   => $4,
+				};
+		} elsif ( $npc && $line =~ /^\s*(\w+)\s+(.*?)\s*$/os ) {
+			$npc->{$1} = $2;
+		}
+	}
+}
+
+sub update_npc_file {
+	my ( $npc, $items ) = @_;
+
+	my $path = Settings::getTableFilename( $file );
+	if ( !$path ) {
+		debug( "[$name] Unable to find file [$file]. Item list will not be saved.\n", $name );
+		return;
+	}
+	my $npcs = [];
+	my $current;
+
+	my @lines;
+	my $fp = new Utils::TextReader( $path, { process_includes => 0, hide_comments => 0 } );
+	while ( !$fp->eof ) {
+		my $line = $fp->readLine;
+		if ( !$current && $line =~ /^\s*npcStore\s*{\s*$/os ) {
+			push @$npcs, $current = { start => scalar @lines };
+		} elsif ( $current && $line =~ /^\s*\}\s*$/os ) {
+			$current->{end} = scalar @lines;
+			$current = undef;
+		} elsif ( $current && $line =~ /^\s*(\w+)\s+(.*?)\s*$/os ) {
+			$current->{$1} = $2;
+			if ( $1 eq 'location' && "$2" =~ /^(\S+) (\d+) (\d+)$/ ) {
+				$current->{map} = $1;
+				$current->{x}   = $2;
+				$current->{y}   = $3;
+			}
+		}
+		push @lines, $line;
+	}
+
+	# Match NPC by location? Sometimes servers move NPCs. Or stack NPCs on top of each other.
+	# Match NPC by name? Sometimes servers change NPC names.
+	# Match NPC by ID? Sometimes servers change IDs.
+	@$npcs = grep { $_->{map} && $_->{map} eq $field->baseName } @$npcs;
+	foreach ( @$npcs ) {
+        $_->{match} = 0;
+
+		# Exact match.
+		$_->{match}++ if $_->{name} eq $npc->{name};
+		$_->{match}++ if distance( $current, $npc->{pos} ) < 1;
+
+		# Exact match including ID.
+		$_->{match_id} = $_->{match};
+		$_->{match_id}++ if $_->{id} == $npc->{nameID};
+
+		# Fuzzy match by location.
+		$_->{loc_match} = $_->{match};
+		$_->{loc_match}++ if distance( $current, $npc->{pos} ) <= 10;
+
+		# Fuzzy match by location including ID.
+		$_->{loc_match_id} = $_->{loc_match};
+		$_->{loc_match_id}++ if $_->{id} == $npc->{nameID};
+
+		# Fuzzy match by name.
+		$_->{name_match} = $_->{match};
+		$_->{name_match}++ if levenshtein_distance( $_->{name}, $npc->{name} ) <= 2;
+
+		# Fuzzy match by name including ID.
+		$_->{name_match_id} = $_->{name_match};
+		$_->{name_match_id}++ if $_->{id} == $npc->{nameID};
+	}
+
+	# Try to find the NPC.
+	$current = undef;
+	$current ||= ( reverse sort { $a->{start} <=> $b->{start} } grep { $_->{match_id} == 3 } @$npcs )[0];
+	$current ||= ( reverse sort { $a->{start} <=> $b->{start} } grep { $_->{match} == 2 } @$npcs )[0];
+	$current ||= ( reverse sort { $a->{start} <=> $b->{start} } grep { $_->{loc_match_id} == 3 } @$npcs )[0];
+	$current ||= ( reverse sort { $a->{start} <=> $b->{start} } grep { $_->{loc_match} == 2 } @$npcs )[0];
+	$current ||= ( reverse sort { $a->{start} <=> $b->{start} } grep { $_->{name_match_id} == 3 } @$npcs )[0];
+	$current ||= ( reverse sort { $a->{start} <=> $b->{start} } grep { $_->{name_match} == 2 } @$npcs )[0];
+	$current->{start} = @lines if !defined $current->{start};
+	$current->{end}   = @lines if !defined $current->{end};
+
+	# Splice in the new NPC data.
+	my @new_lines;
+	push @new_lines, "npcStore {\n";
+	push @new_lines, "  id $npc->{nameID}\n";
+	push @new_lines, "  name $npc->{name}\n";
+	push @new_lines, "  location @{[$field->baseName]} $npc->{pos}->{x} $npc->{pos}->{y}\n";
+	push @new_lines, "  # Item  Price     ID    Item\n";
+	push @new_lines, sprintf "  item_%-2s %9d %5d %s\n", $_ + 1, $items->[$_]->{price}, $items->[$_]->{nameID}, $items->[$_]->{name} foreach 0 .. $#$items;
+	push @new_lines, "}\n";
+	splice @lines, $current->{start}, $current->{end} - $current->{start} + 1, @new_lines;
+
+	# Write the file!
+	undef $fp;
+	if ( !open $fp, '>', $path ) {
+		debug( "[$name] Unable to write to file [$path]. Item list will not be saved.\n", $name );
+		return;
+	}
+	print $fp $_ foreach @lines;
+	close $fp;
+}
+
+# Levenshtein distance between two strings, without transposition.
+sub levenshtein_distance {
+	my ( $s, $t ) = @_;
+
+	# degenerate cases
+	return 0         if $s eq $t;
+	return length $t if !length $s;
+	return length $s if !length $t;
+
+	# create two work vectors of integer distances
+	# initialize $v0 (the previous row of distances)
+	# this row is A[0][i]: edit distance for an empty s
+	# the distance is just the number of characters to delete from t
+	my $v0 = [ 0 .. length( $t ) ];
+	my $v1 = [];
+
+	for ( my $i = 0 ; $i < length $s ; $i++ ) {
+
+		# calculate $v1 (current row distances) from the previous row $v0
+
+		# first element of $v1 is A[i+1][0]
+		#   edit distance is delete ($i+1) chars from s to match empty t
+		$v1->[0] = $i + 1;
+
+		# use formula to fill in the rest of the row
+		for ( my $j = 0 ; $j < length $t ; $j++ ) {
+			my $cost = substr( $s, $i, 1 ) eq substr( $t, $j, 1 ) ? 0 : 1;
+			$v1->[ $j + 1 ] = List::Util::min( $v1->[$j] + 1, $v0->[ $j + 1 ] + 1, $v0->[$j] + $cost );
+		}
+
+		# copy $v1 (current row) to $v0 (previous row) for next iteration
+		@$v0 = @$v1;
+	}
+
+	$v1->[ length $t ];
+}
+
+#########################################################################
+#  OpenKore - Calculation of inter-map routes
+#  Copyright (c) 2006 OpenKore Team
+#
+#  This software is open source, licensed under the GNU General Public
+#  License, version 2.
+#  Basically, this means that you're allowed to modify and distribute
+#  this software. However, if you distribute modified versions, you MUST
+#  also distribute the source code.
+#  See http://www.gnu.org/licenses/gpl.html for the full license.
+#########################################################################
+# This task calculates a route between different maps. When the calculation
+# is successfully completed, the result can be retrieved with
+# $Task_CalcMapRoute->getRoute() or $Task_CalcMapRoute->getRouteString().
+#
+# Note that this task only performs calculation. The MapRoute task is
+# responsible for actually walking from a map to another.
+package CalcMultiMapRoute;
+
+use strict;
+no warnings;
+use Time::HiRes qw(time);
+
+use Modules 'register';
+use Task;
+use base qw(Task);
+use Task::Route;
+use Field;
+use Globals qw(%config $field %portals_lut %portals_los %timeout $char %routeWeights);
+use Translation qw(T TF);
+use Log qw(debug);
+use Utils qw(timeOut);
+use Utils::Exceptions;
+
+# Stage constants.
+use constant {
+	INITIALIZE => 1,
+	CALCULATE_ROUTE => 2
+};
+
+# Error constants.
+use enum qw(
+	CANNOT_LOAD_FIELD
+	CANNOT_CALCULATE_ROUTE
+);
+
+
+##
+# Task::CalcMapRoute->new(options...)
+#
+# Create a new Task::CalcMapRoute object. The following options are allowed:
+# `l
+# - All options allowed for Task->new()
+# - targets (required) - Array of the target locations you want to go to. Each location should be a triple of (map,x,y).
+# - sourceMap - The map you're coming from. If not specified, the current map
+#               (where the character is) is assumed.
+# - sourceX and sourceY - The source position where you're coming from. If not specified,
+#                         the character's current position is assumed.
+# - budget - The maximum amount of money you want to spend on walking the route (Kapra
+#            teleport service requires money).
+# - maxTime - The maximum time to spend on calculation. If not specified,
+#             $timeout{ai_route_calcRoute}{timeout} is assumed.
+# `l`
+sub new {
+	my $class = shift;
+	my %args = @_;
+	my $self = $class->SUPER::new(@_);
+
+	if (!$args{targets}) {
+		ArgumentException->throw(error => "Task::CalcMultiMapRoute: Invalid arguments.");
+	}
+
+	$self->{source}{field} = defined($args{sourceMap}) ? Field->new(name => $args{sourceMap}) : $field;
+	$self->{source}{map} = $self->{source}{field}->baseName;
+	$self->{source}{x} = defined($args{sourceX}) ? $args{sourceX} : $char->{pos_to}{x};
+	$self->{source}{y} = defined($args{sourceY}) ? $args{sourceY} : $char->{pos_to}{y};
+	$self->{dests} = [
+		map {
+			my ( $map, undef ) = Field::nameToBaseName( undef, $_->{map} );    # Hack to clean up InstanceID
+			{ map => $map, x => $_->{x}, y => $_->{y}, field => Field->new( name => $map ), target => $_ };
+		} @{ $args{targets} }
+	];
+	if ($args{budget} ne '') {
+		$self->{budget} = $args{budget};
+	} elsif ($config{route_maxWarpFee} ne '') {
+		if ($config{route_maxWarpFee} > $char->{zeny}) {
+			$self->{budget} = $char->{zeny};
+		} else {
+			$self->{budget} = $config{route_maxWarpFee};
+		}
+	} else {
+		$self->{budget} = $char->{zeny};
+	}
+	
+	$self->{maxTime} = $args{maxTime} || $timeout{ai_route_calcRoute}{timeout};
+
+	$self->{stage} = INITIALIZE;
+	$self->{openlist} = {};
+	$self->{closelist} = {};
+	$self->{mapSolution} = [];
+	$self->{solution} = [];
+	$self->{dest}{field} = {};
+
+	return $self;
+}
+
+# Overrided method.
+sub iterate {
+	my ($self) = @_;
+	$self->SUPER::iterate();
+
+	if ($self->{stage} == INITIALIZE) {
+		my $openlist  = $self->{openlist};
+		my $closelist = $self->{closelist};
+
+		# Check whether destination is walkable from the starting point.
+		foreach my $target ( @{ $self->{dests} } ) {
+			next if $self->{source}{map} ne $target->{map};
+			my $walkable = Task::Route->getRoute( undef, $self->{source}{field}, $self->{source}, $target, 0 );
+			next if !$walkable;
+
+            $self->{dest} = $target->{target};
+			$self->{mapSolution} = [];
+			$self->setDone;
+			return;
+		}
+
+		# Initializes the openlist with portals walkable from the starting point.
+		foreach my $portal (keys %portals_lut) {
+			my $entry = $portals_lut{$portal};
+			next if ($entry->{source}{map} ne $self->{source}{field}->baseName);
+			my $ret = Task::Route->getRoute($self->{solution}, $self->{source}{field}, $self->{source}, $entry->{source});
+			if ($ret) {
+				for my $dest (grep { $entry->{dest}{$_}{enabled} } keys %{$entry->{dest}}) {
+					my $penalty = int(($entry->{dest}{$dest}{steps} ne '') ? $routeWeights{NPC} : $routeWeights{PORTAL});
+					$openlist->{"$portal=$dest"}{walk} = $penalty + scalar @{$self->{solution}};
+					$openlist->{"$portal=$dest"}{zeny} = $entry->{dest}{$dest}{cost};
+					$openlist->{"$portal=$dest"}{allow_ticket} = $entry->{dest}{$dest}{allow_ticket};
+				}
+			}
+		}
+		$self->{stage} = CALCULATE_ROUTE;
+		debug "CalcMapRoute - initialized.\n", "route";
+
+	} elsif ( $self->{stage} == CALCULATE_ROUTE ) {
+		my $time = time;
+		while ( !$self->{done} && (!$self->{maxTime} || !timeOut($time, $self->{maxTime})) ) {
+			$self->searchStep();
+		}
+		if ($self->{found}) {
+			delete $self->{openlist};
+			delete $self->{solution};
+			delete $self->{closelist};
+			delete $self->{dest}{field};
+			$self->setDone;
+			debug "Map Solution Ready for traversal.\n", "route";
+			debug sprintf("%s\n", $self->getRouteString()), "route";
+
+		} elsif ($self->{done}) {
+			my $destpos = "$self->{dest}{pos}{x},$self->{dest}{pos}{y}";
+			$destpos = "($destpos)" if ($destpos ne "");
+			$self->setError(CANNOT_CALCULATE_ROUTE, TF("Cannot calculate a route from %s (%d,%d) to %s %s",
+				$self->{source}{field}->baseName, $self->{source}{x}, $self->{source}{y},
+				$self->{dest}{map}, $destpos));
+			debug "CalcMapRoute failed.\n", "route";
+		}
+	}
+}
+
+##
+# Array<Hash>* $Task_CalcMapRoute->getRoute()
+# Requires: $self->getStatus() == Task::DONE && !defined($self->getError())
+#
+# Return the calculated route.
+sub getRoute {
+	return $_[0]->{mapSolution};
+}
+
+##
+# String $Task_CalcMapRoute->getRoute()
+# Requires: $self->getStatus() == Task::DONE && !defined($self->getError())
+#
+# Return a string which describes the calculated route. This string has
+# the following form: "payon -> pay_arche -> pay_dun00 -> pay_dun01"
+sub getRouteString {
+	my ($self) = @_;
+	my @maps;
+	foreach my $node (@{$self->{mapSolution}}) {
+		push @maps, $node->{map};
+	}
+	push @maps, "$self->{dest}{map}";
+	return join(' -> ', @maps);
+}
+
+sub searchStep {
+	my ($self) = @_;
+	my $openlist = $self->{openlist};
+	my $closelist = $self->{closelist};
+
+	unless ($openlist && %{$openlist}) {
+		$self->{done} = 1;
+		$self->{found} = '';
+		return 0;
+	}
+
+	my $parent = (sort {$openlist->{$a}{walk} <=> $openlist->{$b}{walk}} keys %{$openlist})[0];
+	debug "$parent, $openlist->{$parent}{walk}\n", "route/path";
+
+	# Uncomment this if you want minimum MAP count. Otherwise use the above for minimum step count
+	#foreach my $parent (keys %{$openlist})
+	{
+		my ($portal, $dest) = split /=/, $parent;
+		if ($self->{budget} ne '' && !($char->inventory->getByNameID(7060) && $openlist->{$parent}{allow_ticket}) && ($openlist->{$parent}{zeny} > $self->{budget})) {
+			# This link is too expensive
+			# We should calculate the entire route cost
+			delete $openlist->{$parent};
+			next;
+		} else {
+#Log::message("closing $parent :: $openlist->{$parent}->{parent} $openlist->{$parent}->{walk} $openlist->{$parent}->{zeny} $openlist->{$parent}->{allow_ticket}\n");
+			# MOVE this entry into the CLOSELIST
+			$closelist->{$parent} = delete $openlist->{$parent};
+		}
+
+		foreach my $target ( @{ $self->{dests} } ) {
+			next if $portals_lut{$portal}{dest}{$dest}{map} ne $target->{map};
+			next if !Task::Route->getRoute( $self->{solution}, $target->{field}, $portals_lut{$portal}{dest}{$dest}, $target );
+			my $walk = "$target->{map} $target->{x} $target->{y}=$target->{map} $target->{x} $target->{y}";
+			$closelist->{$walk}{walk} = scalar @{$self->{solution}} + $closelist->{$parent}{$dest}{walk};
+			$closelist->{$walk}{parent} = $parent;
+			$closelist->{$walk}{zeny} = $closelist->{$parent}{zeny};
+			$closelist->{$walk}{allow_ticket} = $closelist->{$parent}{allow_ticket};
+			$self->{found} = $walk;
+			$self->{dest} = $target->{target};
+			$self->{done} = 1;
+			$self->{mapSolution} = [];
+			my $this = $self->{found};
+			while ($this) {
+				my %arg;
+				$arg{portal} = $this;
+				my ($from, $to) = split /=/, $this;
+				($arg{map}, $arg{pos}{x}, $arg{pos}{y}) = split / /, $from;
+				$arg{walk} = $closelist->{$this}{walk};
+				$arg{zeny} = $closelist->{$this}{zeny};
+				$arg{allow_ticket} = $closelist->{$this}{allow_ticket};
+				$arg{steps} = $portals_lut{$from}{dest}{$to}{steps};
+				$arg{dist} = $portals_lut{$from}{dest}{$to}{dist};
+
+				unshift @{$self->{mapSolution}}, \%arg;
+				$this = $closelist->{$this}{parent};
+			}
+			return;
+		}
+
+		# Get all children of each openlist.
+		foreach my $child (keys %{$portals_los{$dest}}) {
+			next unless $portals_los{$dest}{$child};
+			foreach my $subchild (grep { $portals_lut{$child}{dest}{$_}{enabled} } keys %{$portals_lut{$child}{dest}}) {
+				my $destID = $subchild;
+				my $mapName = $portals_lut{$child}{source}{map};
+				#############################################################
+				my $penalty = int($routeWeights{lc($mapName)}) +
+					int(($portals_lut{$child}{dest}{$subchild}{steps} ne '') ? $routeWeights{NPC} : $routeWeights{PORTAL});
+				my $thisWalk = $penalty + $closelist->{$parent}{walk} + $portals_los{$dest}{$child};
+				if (!exists $closelist->{"$child=$subchild"}) {
+					if ( !exists $openlist->{"$child=$subchild"} || $openlist->{"$child=$subchild"}{walk} > $thisWalk ) {
+						$openlist->{"$child=$subchild"}{parent} = $parent;
+						$openlist->{"$child=$subchild"}{walk} = $thisWalk;
+						$openlist->{"$child=$subchild"}{zeny} = $closelist->{$parent}{zeny} + $portals_lut{$child}{dest}{$subchild}{cost};
+						$openlist->{"$child=$subchild"}{allow_ticket} = $closelist->{$parent}{allow_ticket};
+#my $parent = "$child=$subchild";
+#Log::debug("opening $parent :: $openlist->{$parent}->{parent} $openlist->{$parent}->{walk} $openlist->{$parent}->{zeny} $openlist->{$parent}->{allow_ticket}\n", 'route');
+					}
+				}
+			}
+		}
+	}
+}
