@@ -17,12 +17,15 @@ sub cmd_npcvendor_closest {
 	return if !$args->{return};
 
 	Log::message(
-		sprintf "[%s] Best NPC is [%s] at [%d %d %s].\n",
+		sprintf "[%s] Best NPC is [%s] at [%d %d %s], [%s] maps and [%s] tiles away, and costs [%s] zeny.\n",
 		$name,
 		$args->{return}->{target}->{name},
 		$args->{return}->{target}->{x},
 		$args->{return}->{target}->{y},
 		$args->{return}->{target}->{map},
+		scalar( @{ $args->{return}->{maps} } ) - 1,
+		$args->{return}->{tiles},
+		$args->{return}->{zeny},
 	);
 }
 
@@ -50,32 +53,32 @@ sub closest_location {
 		$locations = [ grep { $_->{map} eq $current->{map} } @$locations ];
 	}
 
-    # Maximum time to spend calculating.
+	# Maximum time to spend calculating.
 	my $tmax = 5;
 
-    my $best;
+	my $best;
 
-		my $task = CalcMultiMapRoute->new(
-			sourceMap => $current->{map},
-			targets   => $locations,
-			maxTime   => $tmax,
-		);
-		$task->activate;
-		my $t0 = Time::HiRes::time;
-		$task->iterate while Time::HiRes::time - $t0 < $tmax && $task->getStatus == Task::RUNNING;
-		if ( $task->getStatus == Task::DONE && !$task->getError ) {
-			$best = {
-				source => $current,
-				target => $task->{dest},
-				maps   => [ map { $_->{map} } @{ $task->{mapSolution} } ],
-				tiles  => List::Util::sum( 0, map { $_->{walk} || 0 } @{ $task->{mapSolution} } ),
-				zeny   => List::Util::sum( 0, map { $_->{zeny} || 0 } @{ $task->{mapSolution} } ),
-			};
-		} elsif ( $task->getStatus == Task::RUNNING ) {
-			$task->stop;
-		}
+	my $task = CalcMultiMapRoute->new(
+		sourceMap => $current->{map},
+		targets   => $locations,
+		maxTime   => $tmax,
+	);
+	$task->activate;
+	my $t0 = Time::HiRes::time;
+	$task->iterate while Time::HiRes::time - $t0 < $tmax && $task->getStatus == Task::RUNNING;
+	if ( $task->getStatus == Task::DONE && !$task->getError ) {
+		$best = {
+			source => $current,
+			target => $task->{dest},
+			maps   => [ map { $_->{map} } @{ $task->{mapSolution} } ],
+			tiles  => $task->{mapSolution}->[-1]->{walk},
+			zeny   => $task->{mapSolution}->[-1]->{zeny} || 0,
+		};
+	} elsif ( $task->getStatus == Task::RUNNING ) {
+		$task->stop;
+	}
 
-    $best;
+	$best;
 }
 
 sub cmd_npcvendor_reload {
@@ -385,11 +388,10 @@ sub iterate {
 		# Check whether destination is walkable from the starting point.
 		foreach my $target ( @{ $self->{dests} } ) {
 			next if $self->{source}{map} ne $target->{map};
-			my $walkable = Task::Route->getRoute( undef, $self->{source}{field}, $self->{source}, $target, 0 );
-			next if !$walkable;
-
+			my $solution = [];
+			next if !Task::Route->getRoute( $solution, $self->{source}{field}, $self->{source}, $target, 0 );
             $self->{dest} = $target->{target};
-			$self->{mapSolution} = [];
+			$self->{mapSolution} = [ { map => $target->{map}, x => $target->{x}, y => $target->{y}, walk => scalar @$solution } ];
 			$self->setDone;
 			return;
 		}
@@ -485,7 +487,6 @@ sub searchStep {
 			delete $openlist->{$parent};
 			next;
 		} else {
-#Log::message("closing $parent :: $openlist->{$parent}->{parent} $openlist->{$parent}->{walk} $openlist->{$parent}->{zeny} $openlist->{$parent}->{allow_ticket}\n");
 			# MOVE this entry into the CLOSELIST
 			$closelist->{$parent} = delete $openlist->{$parent};
 		}
@@ -494,7 +495,7 @@ sub searchStep {
 			next if $portals_lut{$portal}{dest}{$dest}{map} ne $target->{map};
 			next if !Task::Route->getRoute( $self->{solution}, $target->{field}, $portals_lut{$portal}{dest}{$dest}, $target );
 			my $walk = "$target->{map} $target->{x} $target->{y}=$target->{map} $target->{x} $target->{y}";
-			$closelist->{$walk}{walk} = scalar @{$self->{solution}} + $closelist->{$parent}{$dest}{walk};
+			$closelist->{$walk}{walk} = scalar @{$self->{solution}} + $closelist->{$parent}{walk};
 			$closelist->{$walk}{parent} = $parent;
 			$closelist->{$walk}{zeny} = $closelist->{$parent}{zeny};
 			$closelist->{$walk}{allow_ticket} = $closelist->{$parent}{allow_ticket};
@@ -536,8 +537,6 @@ sub searchStep {
 						$openlist->{"$child=$subchild"}{walk} = $thisWalk;
 						$openlist->{"$child=$subchild"}{zeny} = $closelist->{$parent}{zeny} + $portals_lut{$child}{dest}{$subchild}{cost};
 						$openlist->{"$child=$subchild"}{allow_ticket} = $closelist->{$parent}{allow_ticket};
-#my $parent = "$child=$subchild";
-#Log::debug("opening $parent :: $openlist->{$parent}->{parent} $openlist->{$parent}->{walk} $openlist->{$parent}->{zeny} $openlist->{$parent}->{allow_ticket}\n", 'route');
 					}
 				}
 			}
