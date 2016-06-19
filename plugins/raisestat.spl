@@ -1,0 +1,110 @@
+our $name = 'raisestat';
+our $desc = 'automatically raise character stats';
+
+our $hook;
+our $timeout = { time => 0, timeout => 1 };
+
+our $stat_ids = {
+	str => Network::PacketParser::STATUS_STR,
+	agi => Network::PacketParser::STATUS_AGI,
+	vit => Network::PacketParser::STATUS_VIT,
+	int => Network::PacketParser::STATUS_INT,
+	dex => Network::PacketParser::STATUS_DEX,
+	luk => Network::PacketParser::STATUS_LUK,
+};
+
+sub cmd_raisestat_validate {
+	if ( validate() ) {
+		message sprintf "[%s] statsAddAuto_list is valid.\n", $name;
+	}
+}
+
+###############################################################################
+# The AI_pre handler gets turned on whenever we might be able to raise
+# stats, and turned off again if we're not actually able to raise stats.
+# This does not run as an AI sequence because we don't want to block the
+# AI at a critical time (like in the middle of killing monsters).
+
+sub manual_hook_AI_pre {
+	return if !$char;
+	return if $net->getState != Network::IN_GAME;
+
+	return disable() if !$config{statsAddAuto};
+	return disable() if !$config{statsAddAuto_list};
+	return disable() if !validate();
+
+	my $stat = next_stat_to_raise();
+	return disable() if !$stat;
+	return disable() if !can_raise_stat( $stat );
+
+	return if !timeOut( $timeout );
+	$timeout->{time} = time;
+
+	raise_stat( $stat );
+}
+
+sub enable {
+	debug "[$name] Enabling AI_pre.\n", $name;
+	$hook ||= Plugins::addHook( AI_pre => \&manual_hook_AI_pre );
+}
+
+sub disable {
+	debug "[$name] Disabling AI_pre.\n", $name;
+	Plugins::delHook( $hook ) if $hook;
+	undef $hook;
+}
+
+###############################################################################
+# Normal hooks, managed by simple.
+
+sub hook_unload {
+	disable();
+}
+
+sub hook_start3 {
+	enable();
+}
+
+sub hook_configModify {
+	my ( $args ) = @_;
+	if ( $args->{key} eq 'statsAddAuto' && $args->{val} ) {
+		enable();
+	} elsif ( $args->{key} eq 'statsAddAuto_list' ) {
+		$config{statsAddAuto_list} = $args->{val};
+		enable();
+	}
+}
+
+sub hook_base_level_changed {
+	enable();
+}
+
+sub validate {
+	foreach ( split /\s*,\s*/, $config{statsAddAuto_list} ) {
+		next if /^(\d+)\s+(str|agi|vit|int|dex|luk)$/o;
+		error sprintf "[%s] statsAddAuto_list contains unknown segment: %s. Disabling.\n", $name, $_;
+		configModify( statsAddAuto => 0 );
+		return 0;
+	}
+	1;
+}
+
+sub next_stat_to_raise {
+	foreach ( split /\s*,\s*/, $config{statsAddAuto_list} ) {
+		my ( $max, $stat ) = /^(\d+)\s+(str|agi|vit|int|dex|luk)$/o;
+		my $value = $char->{$stat};
+		$value += $char->{"${stat}_bonus"} if !$config{statsAddAuto_dontUseBonus};
+		return $stat if $value < $max;
+	}
+}
+
+sub can_raise_stat {
+	my ( $stat ) = @_;
+	$char->{points_free} >= $char->{"points_$stat"};
+}
+
+sub raise_stat {
+	my ( $stat ) = @_;
+	message sprintf "[%s] Auto-raising stat %s to %d.\n", $name, $stat, $char->{$stat} + 1;
+	$messageSender->sendAddStatusPoint( $stat_ids->{$stat} );
+}
