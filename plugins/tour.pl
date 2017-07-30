@@ -22,10 +22,20 @@ my $hooks = Plugins::addHooks(    #
     [ start3       => \&onStart3 ],
     [ AI_pre       => \&onAIPre ],
     [ Command_post => \&onCommandPost ],
+    [ exp_gained   => \&onExpGained ],
 );
 
 ###############################################################################
 # Event Handlers
+
+sub onExpGained {
+    foreach ( reverse 0 .. $#ai_seq ) {
+        next if $ai_seq[$_] ne 'tour';
+        AI::args( $_ )->{xp} += $monsterBaseExp;
+        AI::args( $_ )->{xpp} += $monsterBaseExp / ( $char->{exp_max} || 1_000_000_000 ) * 100;
+        last;
+    }
+}
 
 # Register config options, applying defaults.
 sub onStart3 {
@@ -50,6 +60,17 @@ sub onCommandPost {
 
     return onStart3() if $seq_str eq 'init';
 
+	if ( $seq_str eq 'force' ) {
+		foreach ( reverse 1 .. $#ai_seq ) {
+			next if $ai_seq[$_] ne 'tour';
+			unshift @ai_seq,      splice @ai_seq,      $_, 1;
+			unshift @ai_seq_args, splice @ai_seq_args, $_, 1;
+			Log::message( "[tour] Tour is now the top priority AI action.\n" );
+			last;
+		}
+		return;
+	}
+
     if ( $seq_str eq 'stop' ) {
         foreach ( reverse 0 .. $#ai_seq ) {
             next if $ai_seq[$_] ne 'tour';
@@ -71,7 +92,59 @@ sub onCommandPost {
         return;
     }
 
+    if ( $seq_str eq 'resume' ) {
+        my $i = AI::findAction( 'tour' );
+        if ( $i eq '' ) {
+            Log::error( "[tour] No tour in progress.\n" );
+            return;
+        }
+        AI::args( $i )->{paused} = 0;
+        Log::message( "[tour] Tour resumed.\n" );
+        return;
+    }
+
+    if ( AI::findAction( 'tour' ) ne '' ) {
+        Log::error( "[tour] Tour already in progress. Use 'tour stop' to cancel the current tour before starting a new one.\n" );
+        return;
+    }
+
     my $seq = OpenKore::Plugin::Tour::Sequence->new( { seq_str => $seq_str } );
+    if ( !$seq->size ) {
+        Log::error( "[tour] Invalid tour sequence.\n" );
+        return;
+    }
+
+    # Reverse the sequence if requested.
+    $seq->reverse if $config{autoTour_order} < 0;
+
+    # Start at a different place if requested.
+    $seq->rotate( $config{autoTour_start} ) if $config{autoTour_start} > 0;
+
+    # Add the current map to the beginning if it's not already there.
+	if ( !$seq->complete && $seq->map ne $field->baseName ) {
+		$seq->{current} = { map => $field->baseName, pos => { x => $char->{pos_to}->{x}, y => $char->{pos_to}->{y} } };
+		unshift @{ $seq->{seq} }, $seq->{current};
+	}
+
+    # The tour has less precedence than tactical actions.
+    my $pos = 0;
+    $pos++ while AI::action( $pos ) =~ /^(macro|attack|skill|take|gather|route|move|items_take|sitAuto)$/;
+
+    splice @ai_seq, $pos, 0, 'tour';
+    splice @ai_seq_args, $pos, 0, { seq => $seq, xp => 0, xpp => 0 };
+ 
+    OpenKore::Plugin::Spread::send_log(
+        {
+            switch  => 'notice',
+            message => "Tour [" . $seq->map . "] starting.",
+        }
+    );
+}
+
+sub run_tour {
+    my ( $seq ) = @_;
+
+    my $seq = OpenKore::Plugin::Tour::Sequence->new( { seq => $seq } );
     if ( !$seq->size ) {
         Log::error( "[tour] Invalid tour sequence.\n" );
         return;
@@ -85,17 +158,10 @@ sub onCommandPost {
 
     # The tour has less precedence than tactical actions.
     my $pos = 0;
-    $pos++ while AI::action( $pos ) =~ /^(macro|attack|skill|take|gather|route)$/;
+    $pos++ while AI::action( $pos ) =~ /^(macro|attack|skill|take|gather|route|move|items_take)$/;
 
     splice @ai_seq, $pos, 0, 'tour';
-    splice @ai_seq_args, $pos, 0, { seq => $seq };
-
-    OpenKore::Plugin::Spread::send_log(
-        {
-            switch  => 'notice',
-            message => "Tour [" . $seq->map . "] starting.",
-        }
-    );
+    splice @ai_seq_args, $pos, 0, { seq => $seq, xp => 0, xpp => 0 };
 }
 
 sub onAIPre {
@@ -103,6 +169,9 @@ sub onAIPre {
 
     my $args = AI::args;
     my $seq  = $args->{seq};
+
+    # Don't stand if the user forced us to sit.
+    return if $ai_v{sitAuto_forcedBySitCommand};
 
     # Skip paused tour.
     return if $args->{paused};
@@ -114,15 +183,31 @@ sub onAIPre {
         return;
     }
 
+    my $dist = distance( calcPosition( $char ), $seq->pos );
+
+    # If the "current" position is visible and there's a command, perform it.
+    if ( !$seq->complete && $seq->cmd eq 'openshop' && $dist <= 13 ) {
+        $seq->{current}->{cmd} = '';
+        my $pos = $seq->pos;
+        foreach my $id ( @venderListsID ) {
+            next if !$id;
+            my $player = Actor::get( $id );
+            next if $player->{pos_to}->{x} != $pos->{x};
+            next if $player->{pos_to}->{y} != $pos->{y};
+            AI::queue( openshop => { type => 'vend', id => $id, added => time, timeout => { timeout => 1 } } );
+            return;
+        }
+    }
+
     # If close to the "current" position, go on to the next position.
-    $seq->next if distance( calcPosition( $char ), $seq->pos ) <= 2 + $config{autoTour_distFromGoal} * 2;
+    $seq->next if $dist <= 2 + $config{autoTour_distFromGoal} * 2;
 
     if ( $seq->complete ) {
         Log::message( "[tour] Tour complete. Have a nice day!\n" );
         OpenKore::Plugin::Spread::send_log(
             {
                 switch  => 'notice',
-                message => "Tour [" . $seq->map . "] complete.",
+                message => sprintf( 'Tour [%s] complete. Gained %d (%.1f%%) experience.', $seq->map, $args->{xp}, $args->{xpp} ),
             }
         );
         AI::dequeue;
@@ -130,7 +215,7 @@ sub onAIPre {
     }
 
     main::ai_route(
-        $args->{map}, $seq->pos->{x}, $seq->pos->{y},
+        $seq->map, $seq->pos->{x}, $seq->pos->{y},
         attackOnRoute => 2,
         distFromGoal  => $config{autoTour_distFromGoal},
     );
@@ -161,6 +246,7 @@ sub new {
 
 sub _init {
     my ( $self, $steps ) = @_;
+    return if !$self->{seq}->[0];
     $self->{step}    = 0;
     $self->{current} = { %{ $self->{seq}->[0] } };
 }
@@ -193,6 +279,11 @@ sub map {
 sub pos {
     my ( $self ) = @_;
     return $self->current->{pos};
+}
+
+sub cmd {
+    my ( $self ) = @_;
+    return $self->current->{cmd} || '';
 }
 
 sub size {
@@ -236,8 +327,8 @@ sub parse_sequence {
     foreach ( split /\s*,\s*/, $seq_str ) {
         if ( /^\w+$/o ) {
             $map = $_;
-        } elsif ( /^(\d+)\s+(\d+)$/o ) {
-            push @$seq, { map => $map, pos => { x => $1, y => $2 } };
+        } elsif ( /^(?:(\w+) )?(\d+)\s+(\d+)$/o ) {
+            push @$seq, { map => $map, pos => { x => $2, y => $3 }, cmd => $1 };
         } else {
             return [];
         }
