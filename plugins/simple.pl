@@ -116,12 +116,18 @@ sub register_file {
     local $/;
     my $file_contents = <$fp>;
     close $fp;
+
+    # Allow $name to be redefined without Perl complaining about it.
+    # This has the potential to break code, so let's try to make it as specific as possible.
+    $file_contents =~ s/(\bour\s+\$name\s*=\s*(['"])[^'"\\]+\2;)/no warnings 'misc';$1;use warnings 'misc';/gos;
+
     my $r = eval qq{
 		package OpenKore::Plugins::$package;
 		use strict;
 		use warnings;
 		BEGIN { OpenKore::Plugins::Simple::Symbols->import; };
 		no warnings 'redefine';
+		our \$name = q{$package};
 # Magic comment so eval reports the right file and line for syntax errors. Must be at the start of the line!
 # line 1 "$file"
 		$file_contents;

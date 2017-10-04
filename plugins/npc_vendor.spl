@@ -9,6 +9,38 @@ sub hook_start3 {
     cmd_npcvendor_reload();
 }
 
+sub cmd_npcvendor_list {
+	my ( $item ) = @_;
+
+	my $args = { item => $item };
+	Plugins::callHook( npcvendor_list => $args );
+	return if !$args->{return};
+
+	message(    #
+		sprintf "[%s] NPC [%s] at [%d %d %s] sells [%s] with index [%s]\n",
+		$name,
+		$_->{npc}->{name},
+		$_->{npc}->{x},
+		$_->{npc}->{y},
+		$_->{npc}->{map},
+		$_->{item}->{name},
+		$_->{item}->{index},
+	) foreach @{ $args->{return} };
+}
+
+# Our "task" is a hook, so other code can try to call us.
+sub hook_npcvendor_list {
+	my ( $args ) = @_;
+
+	# Find all vendors which sell this item.
+	$args->{return} = [
+		map {
+		    my $npc = $_;
+			map { ( { npc => $npc, item => $_ } ) } grep { $_->{name} eq $args->{item} || $_->{nameID} eq $args->{item} } @{ $_->{items} };
+		} @$npcs
+	];
+}
+
 sub cmd_npcvendor_closest {
 	my ( $item ) = @_;
 
@@ -36,8 +68,7 @@ sub hook_npcvendor_closest {
 	# Find all vendors which sell this item.
 	my $npcs = [
 		grep {
-			grep { $_->{name} eq $args->{item} || $_->{nameID} eq $args->{item} }
-				@{ $_->{items} }
+			grep { $_->{name} eq $args->{item} || $_->{nameID} eq $args->{item} } @{ $_->{items} };
 		} @$npcs
 	];
 	return if !@$npcs;
