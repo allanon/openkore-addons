@@ -7,7 +7,7 @@
 # You are free:
 #    * to copy, distribute, display, and perform the work
 #    * to make derivative works
-# 
+#
 # Under the following conditions:
 #    * by Attribution: You must attribute the work in the manner specified by the author or licensor.
 #    * Noncommercial: You may not use this work for commercial purposes.
@@ -18,9 +18,9 @@
 #
 # Your fair use and other rights are in no way affected by the above.
 #
-# This is a human-readable summary of the Legal Code ( Full License: http://creativecommons.org/licenses/by-nc-sa/2.5/legalcode ). 
+# This is a human-readable summary of the Legal Code ( Full License: http://creativecommons.org/licenses/by-nc-sa/2.5/legalcode ).
 # Disclaimer: http://creativecommons.org/licenses/disclaimer-popup?lang=en
-# 
+#
 #########################################################################
 package OpenKore::Plugin::AutoRefine;
 
@@ -109,7 +109,7 @@ sub main {
     return if $char->{sitting};
     return if !exists $config{'autoRefine_0'};
 
-    if ( $AI == AI::AUTO && !AI::inQueue( 'refine_plugin' ) ) {
+    if ( AI::state == AI::AUTO && !AI::inQueue( 'refine_plugin' ) ) {
         return if !timeOut( $timeout{autorefine} );
 
         if ( !selectItem() ) {
@@ -242,7 +242,7 @@ sub refine_using_npc {
     }
 
     if ( $todo->{state} eq 'unequipping' ) {
-        my $item = $char->inventory->getByServerIndex( $todo->{item}->{index} );
+        my $item = $char->inventory->getByID( $todo->{item}->{ID} );
         if ( $item ) {
             $item->unequip;
             transition( $todo, 'end', 6, ['unequip_item'] );
@@ -393,7 +393,7 @@ sub talkNPC {
 sub checkItem {
     my ( $todo ) = @_;
 
-    my $item = $char->inventory->getByServerIndex( $todo->{item}->{index} );
+    my $item = $char->inventory->getByID( $todo->{item}->{ID} );
 
     my $result = '';
     if ( $item && $item->{upgrade} > $todo->{upgrade} ) {
@@ -435,7 +435,7 @@ sub logResult {
 sub onEquipItem {
     my ( undef, $args ) = @_;
 
-    my $item = $char->inventory->getByServerIndex( $args->{index} );
+    my $item = $char->inventory->getByID( $args->{ID} );
     return if !$item;
     return if !$item->{name};
     return if !$item->{equipped};
@@ -447,7 +447,7 @@ sub onEquipItem {
 sub onUnequipItem {
     my ( undef, $args ) = @_;
 
-    my $item = $char->inventory->getByServerIndex( $args->{index} );
+    my $item = $char->inventory->getByID( $args->{ID} );
     return if !$item;
     return if !$item->{name};
     return if $item->{equipped};
